@@ -172,7 +172,7 @@ const StudentDetails = () => {
     if (file) {
       const formData = new FormData();
       formData.append("documents", file); // Use 'documents' as the field name
-  
+
       try {
         const response = await axios.post(
           `http://localhost:5000/api/students/${id}/upload-documents`,
@@ -183,7 +183,7 @@ const StudentDetails = () => {
             },
           }
         );
-  
+
         if (response.data.success) {
           alert("Document uploaded successfully!");
           fetchStudentDetails(); // Refresh student details
@@ -201,7 +201,7 @@ const StudentDetails = () => {
         `http://localhost:5000/api/students/${id}/delete-document`,
         { data: { documentPath } }
       );
-  
+
       if (response.data.success) {
         alert("Document deleted successfully!");
         fetchStudentDetails(); // Refresh student details
@@ -343,16 +343,19 @@ const StudentDetails = () => {
               >
                 <FaInfoCircle /> Full Detail
               </button>
-              <button
-                onClick={() => setActiveTab("dailyReport")}
-                className={`px-6 py-2 rounded-t-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                  activeTab === "dailyReport"
-                    ? "bg-blue-500 text-white shadow-md hover:bg-blue-600"
-                    : "bg-transparent text-gray-500 hover:bg-gray-100"
-                }`}
-              >
-                <FaCalendarDay /> Daily Report
-              </button>
+              {/* Conditionally render Daily Report tab for Hifz students */}
+              {student.classType === "Hifz" && (
+                <button
+                  onClick={() => setActiveTab("dailyReport")}
+                  className={`px-6 py-2 rounded-t-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                    activeTab === "dailyReport"
+                      ? "bg-blue-500 text-white shadow-md hover:bg-blue-600"
+                      : "bg-transparent text-gray-500 hover:bg-gray-100"
+                  }`}
+                >
+                  <FaCalendarDay /> Daily Report
+                </button>
+              )}
               <button
                 onClick={() => setActiveTab("examsAndResult")}
                 className={`px-6 py-2 rounded-t-lg text-sm font-medium transition-colors flex items-center gap-2 ${
