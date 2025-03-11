@@ -2,7 +2,13 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import { FaUpload, FaSave, FaEdit, FaExchangeAlt } from "react-icons/fa"; // Added FaExchangeAlt for migrate icon
+import {
+  FaUpload,
+  FaSave,
+  FaEdit,
+  FaExchangeAlt,
+  FaIdCard,
+} from "react-icons/fa"; // Added FaExchangeAlt for migrate icon
 import {
   FaInfoCircle,
   FaCalendarDay,
@@ -17,6 +23,7 @@ import MigrationHistory from "../components/Students/MigrationHistory";
 
 const StudentDetails = () => {
   const { id } = useParams(); // Get student ID from the URL
+  // console.log("Student ID from URL:", id); 
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -159,6 +166,8 @@ const StudentDetails = () => {
     }));
   };
 
+  
+
   // Save updated student details
   const handleSave = async () => {
     try {
@@ -181,6 +190,8 @@ const StudentDetails = () => {
   useEffect(() => {
     fetchStudentDetails();
   }, [id]);
+
+ 
 
   // Display loading or error messages
   if (loading) {
@@ -503,30 +514,58 @@ const StudentDetails = () => {
                     </p>
                   </div>
 
+                  
                   {/* Document Uploading Box */}
                   <div className="bg-white shadow-md rounded-lg p-6">
                     <h4 className="text-lg font-semibold mb-4">Documents</h4>
                     <div className="space-y-4">
+                      {/* Student's B-Form */}
                       <div>
                         <label className="block text-sm font-medium mb-1">
                           Student B-Form
                         </label>
-                        <input
-                          type="file"
-                          className="w-full p-2 border border-gray-300 rounded"
-                        />
+                        <div className="flex items-center gap-2">
+                          <FaUpload className="text-gray-500" />
+                          <input
+                            type="file"
+                            className="w-full p-2 border border-gray-300 rounded"
+                            onChange={(e) => handleFileUpload(e, "bForm")}
+                          />
+                        </div>
                       </div>
+
+                      {/* Father's CNIC Front */}
                       <div>
                         <label className="block text-sm font-medium mb-1">
-                          Father CNIC
+                          Father CNIC (Front)
                         </label>
-                        <input
-                          type="file"
-                          className="w-full p-2 border border-gray-300 rounded"
-                        />
+                        <div className="flex items-center gap-2">
+                          <FaIdCard className="text-gray-500" />
+                          <input
+                            type="file"
+                            className="w-full p-2 border border-gray-300 rounded"
+                            onChange={(e) => handleFileUpload(e, "cnicFront")}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Father's CNIC Back */}
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Father CNIC (Back)
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <FaIdCard className="text-gray-500" />
+                          <input
+                            type="file"
+                            className="w-full p-2 border border-gray-300 rounded"
+                            onChange={(e) => handleFileUpload(e, "cnicBack")}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
+
                   <MigrationHistory studentId={id} />
                 </div>
               )}
