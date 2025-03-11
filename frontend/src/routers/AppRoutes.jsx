@@ -19,8 +19,8 @@ const AppRoutes = () => {
       <Route path="/teachers/allteahcers" element={<AllTeachers />} />
       <Route path="/student/registration" element={<StudentRegistration />} />
       <Route path="/teacher/registration" element={<TeacherRegistration />} />
-      <Route path="/teacher/card" element={<StudentCard />} />
-      <Route path="/teacher/performance" element={<PoorPerformersList />} />
+      <Route path="/student/card" element={<StudentCard />} />
+      <Route path="/student/:id/performance" element={<PoorPerformersList />} />
       <Route path="/student/:id" element={<DailyReport />} />
       <Route path="/student/:id" element={<Analytics />} />
       <Route path="/students/:id" element={<StudentDetails />} /> {/* Fixed this line */}

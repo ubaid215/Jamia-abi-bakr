@@ -39,11 +39,16 @@ router.get(
   reportController.getPerformanceData
 );
 
+
+
 // Fetch para completion data for a student
 router.get(
   "/:studentId/para-completion",
   reportMiddleware.validateStudentId,
   reportController.getParaCompletionData
 );
+
+// Fetch students with poor performance
+router.get("/poor-performers", reportController.getPoorPerformers);
 
 module.exports = router;

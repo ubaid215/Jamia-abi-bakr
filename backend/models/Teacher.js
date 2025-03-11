@@ -6,7 +6,7 @@ const teacherSchema = new mongoose.Schema({
   cnic: { type: String, required: true, unique: true },
   phoneNumber: { type: String, required: true },
   address: { type: String, required: true },
-  classType: { type: String, required: true, enum: ["Hifz", "Nazra", "Dars-e-Nizami", "School"] }, // Add classType field
+  classType: { type: String, required: true, enum: ["Hifz", "Nazra", "Dars-e-Nizami", "Academic"] }, // Add classType field
   cv: { type: String, required: true }, // Path to the uploaded CV file
   profileId: { type: String, unique: true }, // Auto-generated profile ID
 });

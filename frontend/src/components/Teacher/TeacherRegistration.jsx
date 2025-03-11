@@ -111,7 +111,7 @@ const TeacherRegistration = () => {
               <option value="Hifz">Hifz</option>
               <option value="Nazra">Nazra</option>
               <option value="Dars-e-Nizami">Dars-e-Nizami</option>
-              <option value="School">School</option>
+              <option value="Academic">Academic</option>
             </select>
           </div>
           <div>

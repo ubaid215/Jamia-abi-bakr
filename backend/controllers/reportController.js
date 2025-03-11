@@ -1,31 +1,53 @@
 const DailyReport = require("../models/DailyReport");
+const Student = require("../models/Student"); // Import the Student model
 const mongoose = require("mongoose");
 const sanitizeHtml = require("sanitize-html");
 
-
+// Helper function to check weekly performance
 const checkWeeklyPerformance = async (studentId) => {
-    try {
-      const oneWeekAgo = new Date();
-      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7); // Get the date 7 days ago
-  
-      // Fetch reports for the last 7 days
-      const reports = await DailyReport.find({
-        studentId,
-        date: { $gte: oneWeekAgo },
-      });
-  
-      // Check if any report has a condition of "Below Average" or "Need Focus"
-      const hasPoorPerformance = reports.some(
-        (report) =>
-          report.condition === "Below Average" || report.condition === "Need Focus"
-      );
-  
-      return hasPoorPerformance;
-    } catch (error) {
-      console.error("Error checking weekly performance:", error);
-      return false;
+  try {
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7); // Get the date 7 days ago
+
+    // Fetch reports for the last 7 days
+    const reports = await DailyReport.find({
+      studentId,
+      date: { $gte: oneWeekAgo },
+    });
+
+    // Check if any report has a condition of "Below Average" or "Need Focus"
+    const hasPoorPerformance = reports.some(
+      (report) =>
+        report.condition === "Below Average" || report.condition === "Need Focus"
+    );
+
+    return hasPoorPerformance;
+  } catch (error) {
+    console.error("Error checking weekly performance:", error);
+    return false;
+  }
+};
+
+// Fetch students with poor performance
+const getPoorPerformers = async (req, res) => {
+  try {
+    const allStudents = await Student.find(); // Fetch all students
+    const poorPerformers = [];
+
+    // Check each student's performance
+    for (const student of allStudents) {
+      const hasPoorPerformance = await checkWeeklyPerformance(student._id);
+      if (hasPoorPerformance) {
+        poorPerformers.push(student);
+      }
     }
-  };
+
+    res.status(200).json({ success: true, students: poorPerformers });
+  } catch (error) {
+    console.error("Error in getPoorPerformers:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 // Save a daily report for a student
 const saveReport = async (req, res) => {
@@ -251,6 +273,7 @@ const getParaCompletionData = async (req, res) => {
   }
 };
 
+// Export all functions
 module.exports = {
   saveReport,
   getFilteredReports,
@@ -258,4 +281,5 @@ module.exports = {
   getMonthlyReports,
   getPerformanceData,
   getParaCompletionData,
+  getPoorPerformers, 
 };

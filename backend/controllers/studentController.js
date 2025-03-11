@@ -1,6 +1,7 @@
 const Student = require("../models/student");
 const fs = require("fs"); // For file system operations
 const path = require("path"); // For handling file paths
+const Teacher = require('../models/Teacher')
 
 // Upload student's profile image
 exports.uploadStudentImage = async (req, res) => {
@@ -107,8 +108,13 @@ exports.createStudent = async (req, res) => {
 exports.getAllStudents = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1; // Default to page 1
-    const limit = parseInt(req.query.limit) || 20; // Default to 10 students per page
+    const limit = parseInt(req.query.limit) || 20; // Default to 20 students per page
     const skip = (page - 1) * limit;
+
+    // Validate page and limit
+    if (isNaN(page) || isNaN(limit)) {
+      return res.status(400).json({ success: false, message: "Invalid page or limit value" });
+    }
 
     // Extract query parameters
     const search = req.query.search || ""; // Search term
@@ -116,6 +122,14 @@ exports.getAllStudents = async (req, res) => {
     const endDate = req.query.endDate || ""; // End date for admission date filter
     const classType = req.query.classType || ""; // Class type filter
     const sortBy = req.query.sortBy || ""; // Sorting criteria
+
+    // Validate date formats
+    if (startDate && isNaN(new Date(startDate).getTime())) {
+      return res.status(400).json({ success: false, message: "Invalid startDate format" });
+    }
+    if (endDate && isNaN(new Date(endDate).getTime())) {
+      return res.status(400).json({ success: false, message: "Invalid endDate format" });
+    }
 
     // Define the base query
     const query = {};
@@ -180,6 +194,7 @@ exports.getAllStudents = async (req, res) => {
       currentPage: page,
     });
   } catch (error) {
+    console.error("Error in getAllStudents:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -246,11 +261,16 @@ exports.deleteStudent = async (req, res) => {
   }
 };
 
-// studentController.js
+// Student Migration Function
 
 exports.migrateStudent = async (req, res) => {
   try {
-    const { studentId, newClassType } = req.body;
+    const { studentId, newClassType, migratedBy } = req.body;
+
+    // Validate input
+    if (!studentId || !newClassType) {
+      return res.status(400).json({ success: false, message: "studentId and newClassType are required" });
+    }
 
     // Step 1: Find the student
     const student = await Student.findById(studentId);
@@ -264,9 +284,16 @@ exports.migrateStudent = async (req, res) => {
       return res.status(404).json({ success: false, message: "No teacher found for the new class type" });
     }
 
-    // Step 3: Update the student's classType and teacherName
+    // Step 3: Add migration history
+    student.migrationHistory.push({
+      fromClass: student.classType, // Previous class type
+      toClass: newClassType, // New class type
+      migratedBy: migratedBy || "System", // Who performed the migration
+    });
+
+    // Step 4: Update the student's classType and teacherName
     student.classType = newClassType;
-    student.teacherName = teacher.fullName; // Update the teacher's name
+    student.teacherName = teacher.fullName;
 
     // Save the updated student
     await student.save();
@@ -277,6 +304,7 @@ exports.migrateStudent = async (req, res) => {
       student,
     });
   } catch (error) {
+    console.error("Error in migrateStudent:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

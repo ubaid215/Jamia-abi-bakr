@@ -12,7 +12,7 @@ const PoorPerformersList = () => {
     const fetchPoorPerformers = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:5000/api/students/poor-performers"
+          "http://localhost:5000/api/students/performance/poor-performers"
         );
 
         // Check if the response is valid

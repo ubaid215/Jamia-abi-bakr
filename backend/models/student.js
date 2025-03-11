@@ -10,21 +10,53 @@ const studentSchema = new mongoose.Schema({
   idCardNumber: { type: String, unique: true },
   permanentAddress: { type: String, required: true },
   currentAddress: { type: String, required: true },
-  fatherPhoneNumber: { type: String, required: true }, // Added Father's Phone Number
-  classType: { type: String, required: true, enum: ["Hifz", "Nazra", "Dars-e-Nizami", "Academic",] },
+  fatherPhoneNumber: {
+    type: String,
+    required: function () {
+      return this.isNew; // Only required for new documents (registration)
+    },
+  },
+  classType: { 
+    type: String, 
+    required: true, 
+    enum: ["Hifz", "Nazra", "Dars-e-Nizami", "Academic"] 
+  },
   educationDetail: { type: String },
-  teacherName: {type: String},
+  teacherName: { type: String },
   profileImage: { type: String }, // Student's profile image
   fatherImage: { type: String }, // Father's image
-  status: { type: String, default: "Active", enum: ["Active", "Inactive", "Graduated", "Suspended"] }, // Add this field
+  status: { 
+    type: String, 
+    default: "Active", 
+    enum: ["Active", "Inactive", "Graduated", "Suspended"] 
+  }, 
   guardian: {
     name: { type: String, required: true },
     relation: { type: String, required: true },
-    phoneNumber: { type: String, required: true }, // Guardian's Phone Number
+    phoneNumber: {
+      type: String,
+      required: function () {
+        return this.isNew; // Only required for new documents (registration)
+      },
+    },
     address: { type: String, required: true },
     officeAddress: { type: String },
   },
+  migrationHistory: [
+    {
+      date: {
+        type: Date,
+        default: Date.now, // Automatically set the migration date
+      },
+      fromClass: String, // Previous class type (optional)
+      toClass: String, // New class type
+      migratedBy: String, // Who performed the migration (e.g., admin ID or name)
+    },
+  ],
   agreedToTerms: { type: Boolean, default: false },
 }, { timestamps: true });
 
-module.exports = mongoose.model("Student", studentSchema);
+// Fix OverwriteModelError
+const Student = mongoose.models.Student || mongoose.model("Student", studentSchema);
+
+module.exports = Student;
