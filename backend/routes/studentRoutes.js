@@ -21,6 +21,9 @@ router.post('/:id/upload-student-image', upload.single('image'), studentControll
 // Route to upload father's image
 router.post('/:id/upload-father-image', upload.single('image'), studentController.uploadFatherImage);
 
+// Route to upload documents (e.g., B-Form, CNIC, etc.)
+router.post('/:id/upload-documents', upload.array('documents', 5), studentController.uploadDocuments);
+
 // Route to register a new student with auto profile creation
 router.post('/register', studentController.createStudent);
 
@@ -32,7 +35,6 @@ router.get("/count", studentController.getTotalStudents);
 
 // Route to get a single student by ID
 router.get('/:id', studentController.getStudentById);
-
 
 // Route to update a student
 router.put('/:id', studentController.updateStudent);
@@ -46,5 +48,6 @@ router.post("/migrate", studentController.migrateStudent);
 // Migrate history Route
 router.get("/:id/migration-history", studentController.getMigrationHistory);
 
+router.delete('/:id/delete-document', studentController.deleteDocument);
 
 module.exports = router;

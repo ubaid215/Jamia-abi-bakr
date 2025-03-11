@@ -1,7 +1,7 @@
 const Student = require("../models/student");
 const fs = require("fs"); // For file system operations
 const path = require("path"); // For handling file paths
-const Teacher = require('../models/Teacher')
+const Teacher = require('../models/Teacher');
 
 // Upload student's profile image
 exports.uploadStudentImage = async (req, res) => {
@@ -66,6 +66,42 @@ exports.uploadFatherImage = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Father image uploaded successfully",
+      student: updatedStudent,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Upload documents (e.g., B-Form, CNIC, etc.)
+exports.uploadDocuments = async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    const files = req.files; // Array of uploaded files
+
+    if (!files || files.length === 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: "No files uploaded" });
+    }
+
+    // Save file paths to the student's documents field
+    const documentPaths = files.map((file) => `/uploads/${file.filename}`);
+    const updatedStudent = await Student.findByIdAndUpdate(
+      studentId,
+      { $push: { documents: { $each: documentPaths } } }, // Add new documents to the array
+      { new: true }
+    );
+
+    if (!updatedStudent) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Student not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Documents uploaded successfully",
       student: updatedStudent,
     });
   } catch (error) {
@@ -262,7 +298,6 @@ exports.deleteStudent = async (req, res) => {
 };
 
 // Student Migration Function
-
 exports.migrateStudent = async (req, res) => {
   try {
     const { studentId, newClassType, migratedBy } = req.body;
@@ -341,6 +376,34 @@ exports.getPoorPerformers = async (req, res) => {
     }
 
     res.status(200).json({ success: true, students: poorPerformers });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.deleteDocument = async (req, res) => {
+  try {
+    const { documentPath } = req.body;
+    const studentId = req.params.id;
+
+    // Remove the document from the student's documents array
+    const student = await Student.findByIdAndUpdate(
+      studentId,
+      { $pull: { documents: documentPath } },
+      { new: true }
+    );
+
+    if (!student) {
+      return res.status(404).json({ success: false, message: "Student not found" });
+    }
+
+    // Delete the file from the server
+    const filePath = path.join(__dirname, `../${documentPath}`);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath); // Delete the file
+    }
+
+    res.status(200).json({ success: true, message: "Document deleted successfully", student });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

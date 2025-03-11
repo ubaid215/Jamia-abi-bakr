@@ -25,9 +25,7 @@ const studentSchema = new mongoose.Schema({
   teacherName: { type: String },
   profileImage: { type: String }, // Student's profile image
   fatherImage: { type: String }, // Father's image
-  bForm: { type: String }, // Student's B-Form
-  cnicFront: { type: String }, // Father's CNIC (Front)
-  cnicBack: { type: String }, 
+  documents: [{ type: String }],
   status: { 
     type: String, 
     default: "Active", 

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react";
 import axios from "axios";
@@ -23,7 +24,7 @@ import MigrationHistory from "../components/Students/MigrationHistory";
 
 const StudentDetails = () => {
   const { id } = useParams(); // Get student ID from the URL
-  // console.log("Student ID from URL:", id); 
+  // console.log("Student ID from URL:", id);
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -166,7 +167,50 @@ const StudentDetails = () => {
     }));
   };
 
+  const handleFileUpload = async (e, documentType) => {
+    const file = e.target.files[0];
+    if (file) {
+      const formData = new FormData();
+      formData.append("documents", file); // Use 'documents' as the field name
   
+      try {
+        const response = await axios.post(
+          `http://localhost:5000/api/students/${id}/upload-documents`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+  
+        if (response.data.success) {
+          alert("Document uploaded successfully!");
+          fetchStudentDetails(); // Refresh student details
+        }
+      } catch (error) {
+        console.error("Error uploading document:", error);
+        alert("Failed to upload document.");
+      }
+    }
+  };
+
+  const handleDeleteDocument = async (documentPath) => {
+    try {
+      const response = await axios.delete(
+        `http://localhost:5000/api/students/${id}/delete-document`,
+        { data: { documentPath } }
+      );
+  
+      if (response.data.success) {
+        alert("Document deleted successfully!");
+        fetchStudentDetails(); // Refresh student details
+      }
+    } catch (error) {
+      console.error("Error deleting document:", error);
+      alert("Failed to delete document.");
+    }
+  };
 
   // Save updated student details
   const handleSave = async () => {
@@ -190,8 +234,6 @@ const StudentDetails = () => {
   useEffect(() => {
     fetchStudentDetails();
   }, [id]);
-
- 
 
   // Display loading or error messages
   if (loading) {
@@ -355,7 +397,6 @@ const StudentDetails = () => {
                       </button>
                     )}
                   </div>
-
                   {/* Father Information Box */}
                   <div className="bg-white shadow-md rounded-lg p-6 mb-6">
                     <h4 className="text-lg font-semibold mb-4">
@@ -417,7 +458,6 @@ const StudentDetails = () => {
                       </div>
                     </div>
                   </div>
-
                   {/* Address Box */}
                   <div className="bg-white shadow-md rounded-lg p-6 mb-6">
                     <h4 className="text-lg font-semibold mb-4">Address</h4>
@@ -450,7 +490,6 @@ const StudentDetails = () => {
                       )}
                     </p>
                   </div>
-
                   {/* Guardian Details Box */}
                   <div className="bg-white shadow-md rounded-lg p-6 mb-6">
                     <h4 className="text-lg font-semibold mb-4">
@@ -513,8 +552,6 @@ const StudentDetails = () => {
                       )}
                     </p>
                   </div>
-
-                  
                   {/* Document Uploading Box */}
                   <div className="bg-white shadow-md rounded-lg p-6">
                     <h4 className="text-lg font-semibold mb-4">Documents</h4>
@@ -563,9 +600,44 @@ const StudentDetails = () => {
                           />
                         </div>
                       </div>
+
+                      {/* Display Uploaded Documents */}
+                      <div>
+                        <h4 className="text-lg font-semibold mb-4">
+                          Uploaded Documents
+                        </h4>
+                        {student.documents && student.documents.length > 0 ? (
+                          <div className="space-y-2">
+                            {student.documents.map((document, index) => (
+                              <div
+                                key={index}
+                                className="flex items-center justify-between p-2 border border-gray-200 rounded"
+                              >
+                                <a
+                                  href={`http://localhost:5000${document}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-500 hover:underline"
+                                >
+                                  Document {index + 1}
+                                </a>
+                                <button
+                                  onClick={() => handleDeleteDocument(document)}
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-gray-500">
+                            No documents uploaded yet.
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
-
                   <MigrationHistory studentId={id} />
                 </div>
               )}
