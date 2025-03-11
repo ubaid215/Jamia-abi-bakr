@@ -1,26 +1,30 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const studentSchema = new mongoose.Schema({
-  fullName: String,
-  fatherName: String,
-  dateOfBirth: Date,
-  dateOfAdmission: Date,
+  fullName: { type: String, required: true },
+  fatherName: { type: String, required: true },
+  dateOfBirth: { type: Date, required: true },
+  dateOfAdmission: { type: Date, required: true },
   admissionNumber: { type: String, unique: true },
   rollNumber: { type: String, unique: true },
-  idCardNumber: String,
-  permanentAddress: String,
-  currentAddress: String,
-  phoneNumber: String,
-  classType: { type: String, enum: ['Hifz', 'Nazra', 'Dars-e-Nizami'] },
-  educationDetail: String,
+  idCardNumber: { type: String, unique: true },
+  permanentAddress: { type: String, required: true },
+  currentAddress: { type: String, required: true },
+  fatherPhoneNumber: { type: String, required: true }, // Added Father's Phone Number
+  classType: { type: String, required: true, enum: ["Hifz", "Nazra", "Dars-e-Nizami", "Academic",] },
+  educationDetail: { type: String },
+  teacherName: {type: String},
+  profileImage: { type: String }, // Student's profile image
+  fatherImage: { type: String }, // Father's image
+  status: { type: String, default: "Active", enum: ["Active", "Inactive", "Graduated", "Suspended"] }, // Add this field
   guardian: {
-    name: String,
-    relation: String,
-    phoneNumber: String,
-    address: String,
-    officeAddress: String
+    name: { type: String, required: true },
+    relation: { type: String, required: true },
+    phoneNumber: { type: String, required: true }, // Guardian's Phone Number
+    address: { type: String, required: true },
+    officeAddress: { type: String },
   },
-  agreedToTerms: Boolean
+  agreedToTerms: { type: Boolean, default: false },
 }, { timestamps: true });
 
-module.exports = mongoose.model('Student', studentSchema);
+module.exports = mongoose.model("Student", studentSchema);

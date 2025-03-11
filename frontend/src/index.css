@@ -4,7 +4,11 @@
     font-family: "gilroy";
 }
 
-.input {
+h1,h2,h3{
+    font-family: poppins;
+}
+
+input {
     @apply w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500;
 }
 

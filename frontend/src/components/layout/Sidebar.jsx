@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FaBars, FaHome, FaUser, FaCog, FaSignOutAlt, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { FaBars, FaHome, FaUser, FaCog, FaSignOutAlt, FaChevronDown, FaChevronUp, FaChalkboardTeacher } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 
 const sidebarColors = {
@@ -17,7 +17,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
   return (
     <div
-      className={`h-screen ${isOpen ? "w-64 px-4" : "w-16"} transition-all duration-300  fixed left-0 top-0 z-50`}
+      className={`h-screen ${isOpen ? "w-52 px-3" : "w-16"} transition-all duration-300  fixed left-0 top-0 z-50`}
       style={{ backgroundColor: sidebarColors.bg, color: sidebarColors.text }}
     >
       <div className="p-4 flex justify-between items-center">
@@ -72,6 +72,17 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
           <li className="mb-2">
             <Link
+              to="/teachers/allteahcers"
+              className={`flex items-center p-3 rounded-lg ${location.pathname === "/teachers/allteahcers" ? "font-bold" : ""}`}
+              style={{ backgroundColor: location.pathname === "/teachers/allteahcers" ? sidebarColors.hover : "transparent" }}
+            >
+              <FaChalkboardTeacher className="text-xl" />
+              {isOpen && <span className="ml-3">Teachers</span>}
+            </Link>
+          </li>
+
+          <li className="mb-2">
+            <Link
               to="/settings"
               className={`flex items-center p-3 rounded-lg ${location.pathname === "/settings" ? "font-bold" : ""}`}
               style={{ backgroundColor: location.pathname === "/settings" ? sidebarColors.hover : "transparent" }}
@@ -109,7 +120,7 @@ const Layout = ({ children }) => {
 
       {/* Main Content */}
       <div
-        className={`flex-1 min-h-screen transition-all duration-300 ${isOpen ? "ml-52" : "ml-5"} p-6`}
+        className={`flex-1 min-h-screen transition-all duration-300 ${isOpen ? "ml-38" : "ml-2"} p-6`}
       >
         {children}
       </div>

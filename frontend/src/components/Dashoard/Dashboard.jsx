@@ -4,14 +4,19 @@ import { useState, useEffect } from "react";
 import Header from "../layout/Header";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import PoorPerformersList from "../Students/PoorPerformersList";
+
+
 
 const Dashboard = () => {
   const [ayah, setAyah] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [totalStudents, setTotalStudents] = useState(0); // State for total students
+  const [totalTeachers, setTotalTeachers] = useState(0); // State for total teachers
   const [searchTerm, setSearchTerm] = useState(""); // State for search term
   const [searchResults, setSearchResults] = useState([]); // State for search results
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // Fetch random Ayah on component mount
   useEffect(() => {
@@ -50,6 +55,22 @@ const Dashboard = () => {
     fetchTotalStudents();
   }, []);
 
+  // Fetch total number of teachers on component mount
+  useEffect(() => {
+    const fetchTotalTeachers = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/teachers/count");
+        if (response.data && response.data.success) {
+          setTotalTeachers(response.data.totalTeachers);
+        }
+      } catch (error) {
+        console.error("Error fetching total teachers:", error);
+      }
+    };
+
+    fetchTotalTeachers();
+  }, []);
+
   // Handle search
   const handleSearch = async (term) => {
     setSearchTerm(term);
@@ -71,14 +92,35 @@ const Dashboard = () => {
     <div className="w-full h-auto">
       <Header />
 
-      {/* Dashboard Title & Button */}
+      {/* Dashboard Title & Dropdown Button */}
       <div className="px-10 flex items-center justify-between">
         <h1 className="font-bold text-2xl">Dashboard</h1>
-        <Link to="/student/registration">
-          <button className="bg-[#E69D52] shadow-xl text-white flex items-center gap-2 p-2 rounded-md cursor-pointer">
-            Register New Student <FaPlus />
+        <div className="relative">
+          <button
+            className="bg-[#E69D52] shadow-xl text-white flex items-center gap-2 p-2 rounded-md cursor-pointer"
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)} // Toggle dropdown
+          >
+            Registeration <FaPlus />
           </button>
-        </Link>
+
+          {/* Dropdown Menu - Show only when `isDropdownOpen` is true */}
+          {isDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-2">
+              <Link
+                to="/student/registration"
+                className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+              >
+                Student Registration
+              </Link>
+              <Link
+                to="/teacher/registration"
+                className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+              >
+                Teacher Registration
+              </Link>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Welcome Box with Quran Ayah */}
@@ -143,7 +185,7 @@ const Dashboard = () => {
             </div>
             <div className="w-full h-[32] bg-gradient-to-r to-[#9A96E7] from-[#7C76DE] rounded-3xl text-zinc-50 flex items-center justify-between gap-2 p-6 shadow-xl">
               <div>
-                <h5 className="font-bold text-3xl">5</h5>
+                <h5 className="font-bold text-3xl">{totalTeachers}</h5>
                 <h1 className="font-light text-xl">Total Teachers</h1>
               </div>
               <div>
@@ -151,9 +193,11 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
+          
         </div>
 
         <div id="right" className="flex-1 rounded-md p-4">
+          <div>
           <div id="performance" className="w-full h-full bg-gray-100 rounded-2xl p-5 shadow-2xl">
             <div id="performance-top" className="flex items-center justify-between mb-5">
               <h1 className="text-black font-extrabold text-2xl">Top Students</h1>
@@ -185,6 +229,12 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
+          </div>
+
+          <div>
+            <PoorPerformersList />
+          </div>
+          
           </div>
         </div>
       </div>

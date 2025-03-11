@@ -10,14 +10,12 @@ const StudentRegistration = () => {
     fatherName: "",
     dateOfBirth: "",
     dateOfAdmission: "",
-    admissionNumber: "",
-    rollNumber: "",
     idCardNumber: "",
     permanentAddress: "",
     currentAddress: "",
-    phoneNumber: "",
     classType: "Hifz",
     educationDetail: "",
+    teacherName: "",
     guardian: {
       name: "",
       relation: "",
@@ -25,16 +23,53 @@ const StudentRegistration = () => {
       address: "",
       officeAddress: "",
     },
+    fatherPhoneNumber: "",
+    status: "Active", // Add status field
     agreedToTerms: false,
   });
-
+  const [errors, setErrors] = useState({}); // State to track validation errors
   const navigate = useNavigate(); // For redirection
 
+  // Validate the current step
+  const validateStep = () => {
+    const newErrors = {};
+
+    if (step === 1) {
+      if (!formData.fullName) newErrors.fullName = "Full Name is required";
+      if (!formData.fatherName) newErrors.fatherName = "Father's Name is required";
+      if (!formData.fatherPhoneNumber) newErrors.fatherPhoneNumber = "Father's Phone Number is required";
+      if (!formData.dateOfBirth) newErrors.dateOfBirth = "Date of Birth is required";
+      if (!formData.dateOfAdmission) newErrors.dateOfAdmission = "Date of Admission is required";
+    }
+
+    if (step === 2) {
+      if (!formData.idCardNumber) newErrors.idCardNumber = "ID Card Number is required";
+      if (!formData.classType) newErrors.classType = "Class Type is required";
+      if (!formData.teacherName) newErrors.teacherName = "Teacher Name is required";
+      if (!formData.educationDetail) newErrors.educationDetail = "Education Details are required";
+      if (!formData.permanentAddress) newErrors.permanentAddress = "Permanent Address is required";
+      if (!formData.currentAddress) newErrors.currentAddress = "Current Address is required";
+    }
+
+    if (step === 3) {
+      if (!formData.guardian.name) newErrors.guardianName = "Guardian Name is required";
+      if (!formData.guardian.relation) newErrors.guardianRelation = "Relation is required";
+      if (!formData.guardian.phoneNumber) newErrors.guardianPhoneNumber = "Guardian's Phone Number is required";
+      if (!formData.guardian.address) newErrors.guardianAddress = "Guardian Address is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0; // Return true if no errors
+  };
+
+  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+    setErrors({ ...errors, [name]: "" }); // Clear the error for the updated field
   };
 
+  // Handle guardian input changes
   const handleGuardianChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -44,23 +79,37 @@ const StudentRegistration = () => {
         [name]: value,
       },
     }));
+    setErrors({ ...errors, [name]: "" }); // Clear the error for the updated field
   };
 
+  // Handle next step
+  const handleNext = () => {
+    if (validateStep()) {
+      setStep(step + 1);
+    }
+  };
+
+  // Handle previous step
+  const handlePrevious = () => {
+    setStep(step - 1);
+  };
+
+  // Handle form submission
   const handleSubmit = async () => {
-    try {
-      const response = await axios.post("http://localhost:5000/api/students/register", formData, {
-        headers: { "Content-Type": "application/json" },
-      });
-      alert("Student registered successfully!");
-      console.log(response.data);
-      navigate("/student/studentlist"); // Redirect to Student List page
-    } catch (error) {
-      if (error.response) {
-        console.error("Server responded with:", error.response.data);
-      } else if (error.request) {
-        console.error("No response from server:", error.request);
-      } else {
-        console.error("Request error:", error.message);
+    if (validateStep()) {
+      try {
+        const response = await axios.post(
+          "http://localhost:5000/api/students/register",
+          formData,
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+        alert("Student registered successfully!");
+        console.log(response.data);
+        navigate("/student/studentlist"); // Redirect to Student List page
+      } catch (error) {
+        console.error("Error registering student:", error);
       }
     }
   };
@@ -105,8 +154,13 @@ const StudentRegistration = () => {
                 placeholder="Full Name"
                 value={formData.fullName}
                 onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full p-3 border ${
+                  errors.fullName ? "border-red-500" : "border-gray-300"
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
               />
+              {errors.fullName && (
+                <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Father Name</label>
@@ -116,8 +170,29 @@ const StudentRegistration = () => {
                 placeholder="Father's Name"
                 value={formData.fatherName}
                 onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full p-3 border ${
+                  errors.fatherName ? "border-red-500" : "border-gray-300"
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
               />
+              {errors.fatherName && (
+                <p className="text-red-500 text-sm mt-1">{errors.fatherName}</p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Father Phone Number</label>
+              <input
+                type="text"
+                name="fatherPhoneNumber"
+                placeholder="Father's Phone Number"
+                value={formData.fatherPhoneNumber}
+                onChange={handleChange}
+                className={`w-full p-3 border ${
+                  errors.fatherPhoneNumber ? "border-red-500" : "border-gray-300"
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              />
+              {errors.fatherPhoneNumber && (
+                <p className="text-red-500 text-sm mt-1">{errors.fatherPhoneNumber}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
@@ -126,8 +201,13 @@ const StudentRegistration = () => {
                 name="dateOfBirth"
                 value={formData.dateOfBirth}
                 onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full p-3 border ${
+                  errors.dateOfBirth ? "border-red-500" : "border-gray-300"
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
               />
+              {errors.dateOfBirth && (
+                <p className="text-red-500 text-sm mt-1">{errors.dateOfBirth}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Date of Admission</label>
@@ -136,12 +216,18 @@ const StudentRegistration = () => {
                 name="dateOfAdmission"
                 value={formData.dateOfAdmission}
                 onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full p-3 border ${
+                  errors.dateOfAdmission ? "border-red-500" : "border-gray-300"
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
               />
+              {errors.dateOfAdmission && (
+                <p className="text-red-500 text-sm mt-1">{errors.dateOfAdmission}</p>
+              )}
             </div>
+            
             <div className="flex justify-end">
               <button
-                onClick={() => setStep(2)}
+                onClick={handleNext}
                 className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-all"
               >
                 Next
@@ -153,27 +239,19 @@ const StudentRegistration = () => {
         {/* Step 2 - Academic Details */}
         {step === 2 && (
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Admission Number</label>
-              <input
-                type="text"
-                name="admissionNumber"
-                placeholder="Admission Number"
-                value={formData.admissionNumber}
+             <div>
+              <label className="block text-sm font-medium text-gray-700">Status</label>
+              <select
+                name="status"
+                value={formData.status}
                 onChange={handleChange}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Roll Number</label>
-              <input
-                type="text"
-                name="rollNumber"
-                placeholder="Roll Number"
-                value={formData.rollNumber}
-                onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              >
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+                <option value="Graduated">Graduated</option>
+                <option value="Suspended">Suspended</option>
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">ID Card Number</label>
@@ -183,8 +261,13 @@ const StudentRegistration = () => {
                 placeholder="ID Card Number"
                 value={formData.idCardNumber}
                 onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full p-3 border ${
+                  errors.idCardNumber ? "border-red-500" : "border-gray-300"
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
               />
+              {errors.idCardNumber && (
+                <p className="text-red-500 text-sm mt-1">{errors.idCardNumber}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Class Type</label>
@@ -192,12 +275,34 @@ const StudentRegistration = () => {
                 name="classType"
                 value={formData.classType}
                 onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full p-3 border ${
+                  errors.classType ? "border-red-500" : "border-gray-300"
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
               >
                 <option value="Hifz">Hifz</option>
                 <option value="Nazra">Nazra</option>
                 <option value="Dars-e-Nizami">Dars-e-Nizami</option>
+                <option value="Academic">Academic</option>
               </select>
+              {errors.classType && (
+                <p className="text-red-500 text-sm mt-1">{errors.classType}</p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Teacher Name</label>
+              <input
+                type="text"
+                name="teacherName"
+                placeholder="Teacher's Name"
+                value={formData.teacherName}
+                onChange={handleChange}
+                className={`w-full p-3 border ${
+                  errors.teacherName ? "border-red-500" : "border-gray-300"
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              />
+              {errors.teacherName && (
+                <p className="text-red-500 text-sm mt-1">{errors.teacherName}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Education Details</label>
@@ -206,18 +311,55 @@ const StudentRegistration = () => {
                 placeholder="Education Details"
                 value={formData.educationDetail}
                 onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full p-3 border ${
+                  errors.educationDetail ? "border-red-500" : "border-gray-300"
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
               />
+              {errors.educationDetail && (
+                <p className="text-red-500 text-sm mt-1">{errors.educationDetail}</p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Permanent Address</label>
+              <input
+                type="text"
+                name="permanentAddress"
+                placeholder="Permanent Address"
+                value={formData.permanentAddress}
+                onChange={handleChange}
+                className={`w-full p-3 border ${
+                  errors.permanentAddress ? "border-red-500" : "border-gray-300"
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              />
+              {errors.permanentAddress && (
+                <p className="text-red-500 text-sm mt-1">{errors.permanentAddress}</p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Current Address</label>
+              <input
+                type="text"
+                name="currentAddress"
+                placeholder="Current Address"
+                value={formData.currentAddress}
+                onChange={handleChange}
+                className={`w-full p-3 border ${
+                  errors.currentAddress ? "border-red-500" : "border-gray-300"
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              />
+              {errors.currentAddress && (
+                <p className="text-red-500 text-sm mt-1">{errors.currentAddress}</p>
+              )}
             </div>
             <div className="flex justify-between">
               <button
-                onClick={() => setStep(1)}
+                onClick={handlePrevious}
                 className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-all"
               >
                 Back
               </button>
               <button
-                onClick={() => setStep(3)}
+                onClick={handleNext}
                 className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-all"
               >
                 Next
@@ -237,8 +379,13 @@ const StudentRegistration = () => {
                 placeholder="Guardian Name"
                 value={formData.guardian.name}
                 onChange={handleGuardianChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full p-3 border ${
+                  errors.guardianName ? "border-red-500" : "border-gray-300"
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
               />
+              {errors.guardianName && (
+                <p className="text-red-500 text-sm mt-1">{errors.guardianName}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Relation</label>
@@ -248,19 +395,30 @@ const StudentRegistration = () => {
                 placeholder="Relation"
                 value={formData.guardian.relation}
                 onChange={handleGuardianChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full p-3 border ${
+                  errors.guardianRelation ? "border-red-500" : "border-gray-300"
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
               />
+              {errors.guardianRelation && (
+                <p className="text-red-500 text-sm mt-1">{errors.guardianRelation}</p>
+              )}
             </div>
+           
             <div>
               <label className="block text-sm font-medium text-gray-700">Guardian Phone Number</label>
               <input
                 type="text"
                 name="phoneNumber"
-                placeholder="Guardian Phone Number"
+                placeholder="Guardian's Phone Number"
                 value={formData.guardian.phoneNumber}
                 onChange={handleGuardianChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full p-3 border ${
+                  errors.guardianPhoneNumber ? "border-red-500" : "border-gray-300"
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
               />
+              {errors.guardianPhoneNumber && (
+                <p className="text-red-500 text-sm mt-1">{errors.guardianPhoneNumber}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Guardian Address</label>
@@ -270,8 +428,13 @@ const StudentRegistration = () => {
                 placeholder="Guardian Address"
                 value={formData.guardian.address}
                 onChange={handleGuardianChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full p-3 border ${
+                  errors.guardianAddress ? "border-red-500" : "border-gray-300"
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
               />
+              {errors.guardianAddress && (
+                <p className="text-red-500 text-sm mt-1">{errors.guardianAddress}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Guardian Office Address</label>
@@ -286,16 +449,16 @@ const StudentRegistration = () => {
             </div>
             <div className="flex justify-between">
               <button
-                onClick={() => setStep(2)}
+                onClick={handlePrevious}
                 className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-all"
               >
                 Back
               </button>
               <button
-                onClick={() => setStep(4)}
+                onClick={handleNext}
                 className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-all"
               >
-                Review
+                Next
               </button>
             </div>
           </div>
@@ -318,16 +481,22 @@ const StudentRegistration = () => {
                 <strong>Date of Birth:</strong> {formData.dateOfBirth}
               </p>
               <p>
-                <strong>Admission Number:</strong> {formData.admissionNumber}
+                <strong>Date of Admission:</strong> {formData.dateOfAdmission}
               </p>
               <p>
-                <strong>Roll Number:</strong> {formData.rollNumber}
+                <strong>Permanent Address:</strong> {formData.permanentAddress}
+              </p>
+              <p>
+                <strong>Current Address:</strong> {formData.currentAddress}
               </p>
               <p>
                 <strong>ID Card Number:</strong> {formData.idCardNumber}
               </p>
               <p>
                 <strong>Class Type:</strong> {formData.classType}
+              </p>
+              <p>
+                <strong>Teacher Name:</strong> {formData.teacherName}
               </p>
               <p>
                 <strong>Education Details:</strong> {formData.educationDetail}
@@ -337,6 +506,9 @@ const StudentRegistration = () => {
               </p>
               <p>
                 <strong>Relation:</strong> {formData.guardian.relation}
+              </p>
+              <p>
+                <strong>Father Phone Number:</strong> {formData.fatherPhoneNumber}
               </p>
               <p>
                 <strong>Guardian Phone Number:</strong> {formData.guardian.phoneNumber}
@@ -350,7 +522,7 @@ const StudentRegistration = () => {
             </div>
             <div className="flex justify-between mt-6">
               <button
-                onClick={() => setStep(3)}
+                onClick={handlePrevious}
                 className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-all"
               >
                 Edit
