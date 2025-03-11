@@ -1,10 +1,19 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { FaUpload, FaSave, FaEdit, FaExchangeAlt } from "react-icons/fa"; // Added FaExchangeAlt for migrate icon
+import {
+  FaInfoCircle,
+  FaCalendarDay,
+  FaClipboardList,
+  FaChartLine,
+} from "react-icons/fa";
+
 import Header from "../components/layout/Header";
 import DailyReport from "../components/DailyReport";
 import Analytics from "../components/Analytics";
+import MigrationHistory from "../components/Students/MigrationHistory";
 
 const StudentDetails = () => {
   const { id } = useParams(); // Get student ID from the URL
@@ -41,7 +50,9 @@ const StudentDetails = () => {
   // Fetch available class types from the backend
   const fetchAvailableClassTypes = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/teachers/class-types");
+      const response = await axios.get(
+        "http://localhost:5000/api/teachers/class-types"
+      );
       if (response.data && response.data.success) {
         setAvailableClassTypes(response.data.classTypes);
       }
@@ -268,46 +279,46 @@ const StudentDetails = () => {
 
           {/* Right Section */}
           <div className="w-2/3">
-            <div className="flex gap-4 mb-6">
+            <div className="flex gap-4 mb-6 border-b border-gray-200 pb-2">
               <button
                 onClick={() => setActiveTab("fullDetail")}
-                className={`px-4 cursor-pointer py-2 rounded-lg transition-colors ${
+                className={`px-6 py-2 rounded-t-lg text-sm font-medium transition-colors flex items-center gap-2 ${
                   activeTab === "fullDetail"
-                    ? "bg-blue-500 text-white hover:bg-blue-600"
-                    : "bg-gray-200 hover:bg-gray-300"
+                    ? "bg-blue-500 text-white shadow-md hover:bg-blue-600"
+                    : "bg-transparent text-gray-500 hover:bg-gray-100"
                 }`}
               >
-                Full Detail
+                <FaInfoCircle /> Full Detail
               </button>
               <button
                 onClick={() => setActiveTab("dailyReport")}
-                className={`px-4 cursor-pointer py-2 rounded-lg transition-colors ${
+                className={`px-6 py-2 rounded-t-lg text-sm font-medium transition-colors flex items-center gap-2 ${
                   activeTab === "dailyReport"
-                    ? "bg-blue-500 text-white hover:bg-blue-600"
-                    : "bg-gray-200 hover:bg-gray-300"
+                    ? "bg-blue-500 text-white shadow-md hover:bg-blue-600"
+                    : "bg-transparent text-gray-500 hover:bg-gray-100"
                 }`}
               >
-                Daily Report
+                <FaCalendarDay /> Daily Report
               </button>
               <button
                 onClick={() => setActiveTab("examsAndResult")}
-                className={`px-4 cursor-pointer py-2 rounded-lg transition-colors ${
+                className={`px-6 py-2 rounded-t-lg text-sm font-medium transition-colors flex items-center gap-2 ${
                   activeTab === "examsAndResult"
-                    ? "bg-blue-500 text-white hover:bg-blue-600"
-                    : "bg-gray-200 hover:bg-gray-300"
+                    ? "bg-blue-500 text-white shadow-md hover:bg-blue-600"
+                    : "bg-transparent text-gray-500 hover:bg-gray-100"
                 }`}
               >
-                Exams and Result
+                <FaClipboardList /> Exams and Result
               </button>
               <button
                 onClick={() => setActiveTab("analytics")}
-                className={`px-4 cursor-pointer py-2 rounded-lg transition-colors ${
+                className={`px-6 py-2 rounded-t-lg text-sm font-medium transition-colors flex items-center gap-2 ${
                   activeTab === "analytics"
-                    ? "bg-blue-500 text-white hover:bg-blue-600"
-                    : "bg-gray-200 hover:bg-gray-300"
+                    ? "bg-blue-500 text-white shadow-md hover:bg-blue-600"
+                    : "bg-transparent text-gray-500 hover:bg-gray-100"
                 }`}
               >
-                Analytics
+                <FaChartLine /> Analytics
               </button>
             </div>
 
@@ -333,196 +344,197 @@ const StudentDetails = () => {
                       </button>
                     )}
                   </div>
-                  <div className="flex items-center justify-between gap-4 mb-4">
-                    <div className="relative w-20 h-20">
-                      <img
-                        src={
-                          student.fatherImage
-                            ? `http://localhost:5000${student.fatherImage}`
-                            : "https://via.placeholder.com/100"
-                        }
-                        alt="Father"
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                      <label
-                        htmlFor="upload-father-image"
-                        className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full cursor-pointer"
-                      >
-                        <FaUpload className="text-sm" />
-                      </label>
-                      <input
-                        type="file"
-                        id="upload-father-image"
-                        className="hidden"
-                        onChange={handleFatherImageUpload}
-                      />
-                    </div>
-                    <div>
-                      <p>
-                        <strong>Father Name:</strong>{" "}
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            name="fatherName"
-                            value={editedStudent.fatherName}
-                            onChange={handleInputChange}
-                            className="p-1 border border-gray-300 rounded"
-                          />
-                        ) : (
-                          student.fatherName
-                        )}
-                      </p>
-                      <p>
-                        <strong>Phone Number:</strong>{" "}
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            name="phoneNumber"
-                            value={editedStudent.phoneNumber}
-                            onChange={handleInputChange}
-                            className="p-1 border border-gray-300 rounded"
-                          />
-                        ) : (
-                          student.phoneNumber
-                        )}
-                      </p>
+
+                  {/* Father Information Box */}
+                  <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+                    <h4 className="text-lg font-semibold mb-4">
+                      Father Information
+                    </h4>
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="relative w-20 h-20">
+                        <img
+                          src={
+                            student.fatherImage
+                              ? `http://localhost:5000${student.fatherImage}`
+                              : "https://via.placeholder.com/100"
+                          }
+                          alt="Father"
+                          className="w-full h-full rounded-full object-cover"
+                        />
+                        <label
+                          htmlFor="upload-father-image"
+                          className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full cursor-pointer"
+                        >
+                          <FaUpload className="text-sm" />
+                        </label>
+                        <input
+                          type="file"
+                          id="upload-father-image"
+                          className="hidden"
+                          onChange={handleFatherImageUpload}
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <p>
+                          <strong>Father Name:</strong>{" "}
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              name="fatherName"
+                              value={editedStudent.fatherName}
+                              onChange={handleInputChange}
+                              className="w-full p-1 border border-gray-300 rounded"
+                            />
+                          ) : (
+                            student.fatherName
+                          )}
+                        </p>
+                        <p>
+                          <strong>Phone Number:</strong>{" "}
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              name="fatherPhoneNumber"
+                              value={editedStudent.fatherPhoneNumber}
+                              onChange={handleInputChange}
+                              className="w-full p-1 border border-gray-300 rounded"
+                            />
+                          ) : (
+                            student.fatherPhoneNumber
+                          )}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <p>
-                    <strong>Education Details:</strong>{" "}
-                    {isEditing ? (
-                      <textarea
-                        name="educationDetail"
-                        value={editedStudent.educationDetail}
-                        onChange={handleInputChange}
-                        className="w-full p-1 border border-gray-300 rounded"
-                      />
-                    ) : (
-                      student.educationDetail
-                    )}
-                  </p>
-                  <p>
-                    <strong>Permanent Address:</strong>{" "}
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="permanentAddress"
-                        value={editedStudent.permanentAddress}
-                        onChange={handleInputChange}
-                        className="w-full p-1 border border-gray-300 rounded"
-                      />
-                    ) : (
-                      student.permanentAddress
-                    )}
-                  </p>
-                  <p>
-                    <strong>Current Address:</strong>{" "}
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="currentAddress"
-                        value={editedStudent.currentAddress}
-                        onChange={handleInputChange}
-                        className="w-full p-1 border border-gray-300 rounded"
-                      />
-                    ) : (
-                      student.currentAddress
-                    )}
-                  </p>
-                  <p>
-                    <strong>Phone Number:</strong>{" "}
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="phoneNumber"
-                        value={editedStudent.phoneNumber}
-                        onChange={handleInputChange}
-                        className="p-1 border border-gray-300 rounded"
-                      />
-                    ) : (
-                      student.phoneNumber
-                    )}
-                  </p>
-                  <h4 className="text-lg font-semibold mt-4">
-                    Guardian Details
-                  </h4>
-                  <p>
-                    <strong>Name:</strong>{" "}
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="name"
-                        value={editedStudent.guardian.name}
-                        onChange={handleGuardianInputChange}
-                        className="p-1 border border-gray-300 rounded"
-                      />
-                    ) : (
-                      student.guardian.name
-                    )}
-                  </p>
-                  <p>
-                    <strong>Relation:</strong>{" "}
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="relation"
-                        value={editedStudent.guardian.relation}
-                        onChange={handleGuardianInputChange}
-                        className="p-1 border border-gray-300 rounded"
-                      />
-                    ) : (
-                      student.guardian.relation
-                    )}
-                  </p>
-                  <p>
-                    <strong>Phone Number:</strong>{" "}
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="phoneNumber"
-                        value={editedStudent.guardian.phoneNumber}
-                        onChange={handleGuardianInputChange}
-                        className="p-1 border border-gray-300 rounded"
-                      />
-                    ) : (
-                      student.guardian.phoneNumber
-                    )}
-                  </p>
-                  <p>
-                    <strong>Address:</strong>{" "}
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="address"
-                        value={editedStudent.guardian.address}
-                        onChange={handleGuardianInputChange}
-                        className="w-full p-1 border border-gray-300 rounded"
-                      />
-                    ) : (
-                      student.guardian.address
-                    )}
-                  </p>
-                  <p>
-                    <strong>Office Address:</strong>{" "}
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="officeAddress"
-                        value={editedStudent.guardian.officeAddress}
-                        onChange={handleGuardianInputChange}
-                        className="w-full p-1 border border-gray-300 rounded"
-                      />
-                    ) : (
-                      student.guardian.officeAddress
-                    )}
-                  </p>
+
+                  {/* Address Box */}
+                  <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+                    <h4 className="text-lg font-semibold mb-4">Address</h4>
+                    <p>
+                      <strong>Permanent Address:</strong>{" "}
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          name="permanentAddress"
+                          value={editedStudent.permanentAddress}
+                          onChange={handleInputChange}
+                          className="w-full p-1 border border-gray-300 rounded"
+                        />
+                      ) : (
+                        student.permanentAddress
+                      )}
+                    </p>
+                    <p className="mt-2">
+                      <strong>Current Address:</strong>{" "}
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          name="currentAddress"
+                          value={editedStudent.currentAddress}
+                          onChange={handleInputChange}
+                          className="w-full p-1 border border-gray-300 rounded"
+                        />
+                      ) : (
+                        student.currentAddress
+                      )}
+                    </p>
+                  </div>
+
+                  {/* Guardian Details Box */}
+                  <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+                    <h4 className="text-lg font-semibold mb-4">
+                      Guardian Details
+                    </h4>
+                    <p>
+                      <strong>Name:</strong>{" "}
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          name="name"
+                          value={editedStudent.guardian.name}
+                          onChange={handleGuardianInputChange}
+                          className="w-full p-1 border border-gray-300 rounded"
+                        />
+                      ) : (
+                        student.guardian.name
+                      )}
+                    </p>
+                    <p className="mt-2">
+                      <strong>Relation:</strong>{" "}
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          name="relation"
+                          value={editedStudent.guardian.relation}
+                          onChange={handleGuardianInputChange}
+                          className="w-full p-1 border border-gray-300 rounded"
+                        />
+                      ) : (
+                        student.guardian.relation
+                      )}
+                    </p>
+                    <p className="mt-2">
+                      <strong>Phone Number:</strong>{" "}
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          name="phoneNumber"
+                          value={editedStudent.guardian.phoneNumber}
+                          onChange={handleGuardianInputChange}
+                          className="w-full p-1 border border-gray-300 rounded"
+                        />
+                      ) : (
+                        student.guardian.phoneNumber
+                      )}
+                    </p>
+                    <p className="mt-2">
+                      <strong>Office Address:</strong>{" "}
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          name="officeAddress"
+                          value={editedStudent.guardian.officeAddress}
+                          onChange={handleGuardianInputChange}
+                          className="w-full p-1 border border-gray-300 rounded"
+                        />
+                      ) : (
+                        student.guardian.officeAddress
+                      )}
+                    </p>
+                  </div>
+
+                  {/* Document Uploading Box */}
+                  <div className="bg-white shadow-md rounded-lg p-6">
+                    <h4 className="text-lg font-semibold mb-4">Documents</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Student B-Form
+                        </label>
+                        <input
+                          type="file"
+                          className="w-full p-2 border border-gray-300 rounded"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Father CNIC
+                        </label>
+                        <input
+                          type="file"
+                          className="w-full p-2 border border-gray-300 rounded"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <MigrationHistory studentId={id} />
                 </div>
               )}
               {activeTab === "dailyReport" && <DailyReport studentId={id} />}
               {activeTab === "examsAndResult" && (
                 <div>Exams and Result Content</div>
               )}
-              {activeTab === "analytics" && <Analytics studentId={id}/>}
+              {activeTab === "analytics" && <Analytics studentId={id} />}
             </div>
           </div>
         </div>

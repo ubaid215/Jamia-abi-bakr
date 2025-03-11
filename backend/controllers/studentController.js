@@ -288,7 +288,7 @@ exports.migrateStudent = async (req, res) => {
     student.migrationHistory.push({
       fromClass: student.classType, // Previous class type
       toClass: newClassType, // New class type
-      migratedBy: migratedBy || "System", // Who performed the migration
+      migratedBy: migratedBy || "Admin", // Who performed the migration
     });
 
     // Step 4: Update the student's classType and teacherName
@@ -305,6 +305,24 @@ exports.migrateStudent = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in migrateStudent:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Mirgrated Student History
+exports.getMigrationHistory = async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ success: false, message: "Student not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      migrationHistory: student.migrationHistory || [],
+    });
+  } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };

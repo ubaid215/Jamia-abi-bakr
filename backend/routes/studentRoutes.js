@@ -40,8 +40,11 @@ router.put('/:id', studentController.updateStudent);
 // Route to delete a student
 router.delete('/:id', studentController.deleteStudent);
 
-// studentRoutes.js
+// studentMigrate.js
 router.post("/migrate", studentController.migrateStudent);
+
+// Migrate history Route
+router.get("/:id/migration-history", studentController.getMigrationHistory);
 
 
 module.exports = router;
