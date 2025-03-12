@@ -1,5 +1,5 @@
 const DailyReport = require("../models/DailyReport");
-const Student = require("../models/Student"); // Import the Student model
+const Student = require("../models/Student");
 const mongoose = require("mongoose");
 const sanitizeHtml = require("sanitize-html");
 
@@ -50,7 +50,7 @@ const getPoorPerformers = async (req, res) => {
 };
 
 // Save a daily report for a student
-const saveReport = async (req, res) => {
+const saveReport = async (req, res, io) => {
   try {
     const { studentId } = req.params;
     const { date, sabaq, sabaqMistakes, sabqi, sabqiMistakes, manzil, manzilMistakes, attendance } = req.body;
@@ -60,19 +60,21 @@ const saveReport = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid student ID" });
     }
 
-    // Validate required fields
-    if (!sabaq || !sabqi || !manzil || !attendance || sabaqMistakes === undefined || sabqiMistakes === undefined || manzilMistakes === undefined) {
-      return res.status(400).json({ success: false, message: "All fields are required" });
+    // Validate required fields for "Present" attendance
+    if (attendance === "Present") {
+      if (!sabaq || !sabqi || !manzil || sabaqMistakes === undefined || sabqiMistakes === undefined || manzilMistakes === undefined) {
+        return res.status(400).json({ success: false, message: "All fields are required for 'Present' attendance" });
+      }
     }
 
-    // Sanitize inputs
-    const sanitizedSabaq = sanitizeHtml(sabaq);
-    const sanitizedSabqi = sanitizeHtml(sabqi);
-    const sanitizedManzil = sanitizeHtml(manzil);
+    // Sanitize inputs (only if attendance is "Present")
+    const sanitizedSabaq = attendance === "Present" ? sanitizeHtml(sabaq) : "";
+    const sanitizedSabqi = attendance === "Present" ? sanitizeHtml(sabqi) : "";
+    const sanitizedManzil = attendance === "Present" ? sanitizeHtml(manzil) : "";
 
     // Validate and parse the report date
-    const reportDate = date ? new Date(date) : new Date();
-    if (isNaN(reportDate.getTime())) {
+    const reportDate = date ? new Date(date).toISOString() : new Date().toISOString();
+    if (isNaN(new Date(reportDate).getTime())) {
       return res.status(400).json({ success: false, message: "Invalid date format" });
     }
 
@@ -82,57 +84,51 @@ const saveReport = async (req, res) => {
       return res.status(400).json({ success: false, message: "A report already exists for this date" });
     }
 
-    // Calculate condition based on mistakes
+    // Calculate condition based on mistakes (only for "Present" attendance)
     let condition = "Good";
-    if (sabaqMistakes > 2) {
-      condition = "Below Average";
-    } else if (sabaqMistakes > 0) {
-      condition = "Medium";
-    }
-
-    if (sabqiMistakes > 2) {
-      condition = "Below Average";
-    } else if (sabqiMistakes > 1) {
-      condition = "Medium";
-    }
-
-    if (manzilMistakes > 3) {
-      condition = "Need Focus";
-    } else if (manzilMistakes > 1) {
-      condition = "Medium";
+    if (attendance === "Present") {
+      if (sabaqMistakes > 2 || sabqiMistakes > 2 || manzilMistakes > 3) {
+        condition = "Below Average";
+      } else if (sabaqMistakes > 0 || sabqiMistakes > 1 || manzilMistakes > 1) {
+        condition = "Medium";
+      }
+    } else {
+      condition = "N/A"; // No condition for "Absent" or "Leave"
     }
 
     // Create and save the new report
     const newReport = new DailyReport({
       studentId,
       sabaq: sanitizedSabaq,
-      sabaqMistakes,
+      sabaqMistakes: attendance === "Present" ? sabaqMistakes : 0,
       sabqi: sanitizedSabqi,
-      sabqiMistakes,
+      sabqiMistakes: attendance === "Present" ? sabqiMistakes : 0,
       manzil: sanitizedManzil,
-      manzilMistakes,
+      manzilMistakes: attendance === "Present" ? manzilMistakes : 0,
       condition,
       attendance,
       date: reportDate,
     });
     await newReport.save();
 
-    // Check weekly performance and send alert if needed
-    const hasPoorPerformance = await checkWeeklyPerformance(studentId);
-    if (hasPoorPerformance) {
-      const student = await Student.findById(studentId); // Fetch student details
-      if (student) {
-        const alertMessage = `Alert: Student ${student.fullName} (Roll Number: ${student.rollNumber}) is performing below average. Condition: ${condition}`;
+    // Check weekly performance and send alert if needed (only for "Present" attendance)
+    if (attendance === "Present") {
+      const hasPoorPerformance = await checkWeeklyPerformance(studentId);
+      if (hasPoorPerformance && (condition === "Below Average" || condition === "Need Focus")) {
+        const student = await Student.findById(studentId); // Fetch student details
+        if (student) {
+          const alertMessage = `Alert: Student ${student.fullName} (Roll Number: ${student.rollNumber}) is performing below average. Condition: ${condition}`;
 
-        // Send real-time notification to admin
-        io.emit("alert", {
-          studentName: student.fullName,
-          rollNumber: student.rollNumber,
-          condition,
-          message: alertMessage,
-        });
+          // Send real-time notification to admin
+          io.emit("alert", {
+            studentName: student.fullName,
+            rollNumber: student.rollNumber,
+            condition,
+            message: alertMessage,
+          });
 
-        console.log(alertMessage); // Log the alert to the console
+          console.log(alertMessage); // Log the alert to the console
+        }
       }
     }
 
@@ -225,7 +221,7 @@ const getMonthlyReports = async (req, res) => {
 const getPerformanceData = async (req, res) => {
   try {
     const { studentId } = req.params;
-    const { limit = 100, page = 1 } = req.query; // Add pagination
+    const { limit = 100, page = 1 } = req.query;
 
     // Validate student ID
     if (!mongoose.Types.ObjectId.isValid(studentId)) {
@@ -281,5 +277,5 @@ module.exports = {
   getMonthlyReports,
   getPerformanceData,
   getParaCompletionData,
-  getPoorPerformers, 
+  getPoorPerformers,
 };

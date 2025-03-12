@@ -30,6 +30,9 @@ const Analytics = () => {
   const { id } = useParams();
   const [performanceData, setPerformanceData] = useState([]);
   const [totalLinesCompleted, setTotalLinesCompleted] = useState(0);
+  const [averageLinesPerDay, setAverageLinesPerDay] = useState(0);
+  const [estimatedDaysToCompleteQuran, setEstimatedDaysToCompleteQuran] = useState("N/A");
+  const [performanceCategory, setPerformanceCategory] = useState("");
   const [loading, setLoading] = useState(true);
   const totalLinesInPara = 288;
 
@@ -38,6 +41,8 @@ const Analytics = () => {
       const response = await axios.get(`http://localhost:5000/api/students/${id}/performance`);
       if (response.data.success) {
         setPerformanceData(response.data.reports);
+        setAverageLinesPerDay(response.data.averageLinesPerDay || 0);
+        setPerformanceCategory(response.data.performanceCategory || "N/A");
       }
     } catch (error) {
       console.error("Error fetching performance data:", error.response?.data || error.message);
@@ -48,7 +53,8 @@ const Analytics = () => {
     try {
       const response = await axios.get(`http://localhost:5000/api/students/${id}/para-completion`);
       if (response.data.success) {
-        setTotalLinesCompleted(response.data.totalLinesCompleted);
+        setTotalLinesCompleted(response.data.totalLinesCompleted || 0);
+        setEstimatedDaysToCompleteQuran(response.data.estimatedDaysToCompleteQuran || "N/A");
       }
     } catch (error) {
       console.error("Error fetching para completion data:", error.response?.data || error.message);
@@ -101,8 +107,7 @@ const Analytics = () => {
     ],
   };
 
-  const averageLinesPerDay = performanceData.length > 0 ? totalLinesCompleted / performanceData.length : 0;
-  const daysToComplete = averageLinesPerDay > 0 ? Math.ceil((totalLinesInPara - totalLinesCompleted) / averageLinesPerDay) : "N/A";
+  const daysToCompletePara = averageLinesPerDay > 0 ? Math.ceil((totalLinesInPara - totalLinesCompleted) / averageLinesPerDay) : "N/A";
 
   return (
     <div className="p-6 bg-white shadow-lg rounded-lg max-w-4xl mx-auto">
@@ -116,7 +121,10 @@ const Analytics = () => {
           </div>
           <div className="flex flex-col justify-center">
             <p className="text-lg"><strong>Total Lines Completed:</strong> {totalLinesCompleted} / {totalLinesInPara}</p>
-            <p className="text-lg"><strong>Estimated Days to Complete:</strong> {daysToComplete}</p>
+            <p className="text-lg"><strong>Average Lines per Day:</strong> {averageLinesPerDay.toFixed(2)}</p>
+            <p className="text-lg"><strong>Estimated Days to Complete Para:</strong> {daysToCompletePara}</p>
+            <p className="text-lg"><strong>Estimated Days to Complete Quran:</strong> {estimatedDaysToCompleteQuran}</p>
+            <p className="text-lg"><strong>Performance:</strong> {performanceCategory}</p>
           </div>
         </div>
       </div>

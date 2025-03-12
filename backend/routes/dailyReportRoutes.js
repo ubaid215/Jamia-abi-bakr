@@ -1,54 +1,52 @@
 const express = require("express");
-const router = express.Router();
 const reportController = require("../controllers/reportController");
-const reportMiddleware = require("../middleware/reportMiddleware");
 
-// Save a daily report for a student
-router.post(
-  "/:studentId/reports",
-  reportMiddleware.validateStudentId,
-  reportMiddleware.validateReportDate,
-  reportController.saveReport
-);
+const dailyReportRoutes = (io) => {
+  const router = express.Router();
 
-// Fetch reports for a student with date filter
-router.get(
-  "/:studentId/reports/filter",
-  reportMiddleware.validateStudentId,
-  reportController.getFilteredReports
-);
+  // Save a daily report for a student
+  router.post(
+    "/:studentId/reports",
+    (req, res) => reportController.saveReport(req, res, io)
+  );
 
-// Fetch reports for a student
-router.get(
-  "/:studentId/reports",
-  reportMiddleware.validateStudentId,
-  reportController.getReports
-);
+  // Fetch reports for a student with date filter
+  router.get(
+    "/:studentId/reports/filter",
+    reportController.getFilteredReports
+  );
 
-// Fetch monthly reports for a student
-router.get(
-  "/:studentId/reports/monthly",
-  reportMiddleware.validateStudentId,
-  reportController.getMonthlyReports
-);
+  // Fetch reports for a student
+  router.get(
+    "/:studentId/reports",
+    reportController.getReports
+  );
 
-// Fetch performance data for a student (condition over time)
-router.get(
-  "/:studentId/performance",
-  reportMiddleware.validateStudentId,
-  reportController.getPerformanceData
-);
+  // Fetch monthly reports for a student
+  router.get(
+    "/:studentId/reports/monthly",
+    reportController.getMonthlyReports
+  );
 
+  // Fetch performance data for a student (condition over time)
+  router.get(
+    "/:studentId/performance",
+    reportController.getPerformanceData
+  );
 
+  // Fetch para completion data for a student
+  router.get(
+    "/:studentId/para-completion",
+    reportController.getParaCompletionData
+  );
 
-// Fetch para completion data for a student
-router.get(
-  "/:studentId/para-completion",
-  reportMiddleware.validateStudentId,
-  reportController.getParaCompletionData
-);
+  // Fetch students with poor performance
+  router.get(
+    "/poor-performers",
+    reportController.getPoorPerformers
+  );
 
-// Fetch students with poor performance
-router.get("/poor-performers", reportController.getPoorPerformers);
+  return router;
+};
 
-module.exports = router;
+module.exports = dailyReportRoutes;

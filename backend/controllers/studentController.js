@@ -1,6 +1,6 @@
-const Student = require("../models/student");
-const fs = require("fs"); // For file system operations
-const path = require("path"); // For handling file paths
+const Student = require("../models/Student");
+const fs = require("fs"); 
+const path = require("path"); 
 const Teacher = require('../models/Teacher');
 
 // Upload student's profile image

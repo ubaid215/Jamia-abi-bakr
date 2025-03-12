@@ -1,6 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
-
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
@@ -10,7 +8,7 @@ import autoTable from "jspdf-autotable";
 const DailyReport = () => {
   const { id } = useParams(); // Get student ID from the URL
   const [formData, setFormData] = useState({
-    date: "",
+    date: new Date().toISOString().split("T")[0], // Set default date to today
     sabaq: "",
     sabaqMistakes: 0,
     sabqi: "",
@@ -126,12 +124,24 @@ const DailyReport = () => {
 
       const method = editReportId ? "put" : "post";
 
-      const response = await axios[method](endpoint, formData);
+      // If attendance is "Absent" or "Leave," clear other fields
+      const reportData = {
+        ...formData,
+        date: formData.date || new Date().toISOString().split("T")[0], // Use current date if no date is provided
+        sabaq: formData.attendance === "Present" ? formData.sabaq : "",
+        sabaqMistakes: formData.attendance === "Present" ? formData.sabaqMistakes : 0,
+        sabqi: formData.attendance === "Present" ? formData.sabqi : "",
+        sabqiMistakes: formData.attendance === "Present" ? formData.sabqiMistakes : 0,
+        manzil: formData.attendance === "Present" ? formData.manzil : "",
+        manzilMistakes: formData.attendance === "Present" ? formData.manzilMistakes : 0,
+      };
+
+      const response = await axios[method](endpoint, reportData);
 
       if (response.data.success) {
         fetchReportsByMonth(); // Refresh the reports
         setFormData({
-          date: "",
+          date: new Date().toISOString().split("T")[0],
           sabaq: "",
           sabaqMistakes: 0,
           sabqi: "",
@@ -376,95 +386,100 @@ const DailyReport = () => {
             </select>
           </div>
 
-          {/* Sabaq Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Sabaq
-            </label>
-            <input
-              type="text"
-              name="sabaq"
-              value={formData.sabaq}
-              onChange={handleInputChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
+          {/* Conditional Fields (Only shown if attendance is "Present") */}
+          {formData.attendance === "Present" && (
+            <>
+              {/* Sabaq Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Sabaq
+                </label>
+                <input
+                  type="text"
+                  name="sabaq"
+                  value={formData.sabaq}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
 
-          {/* Sabaq Mistakes Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Sabaq Mistakes
-            </label>
-            <input
-              type="number"
-              name="sabaqMistakes"
-              value={formData.sabaqMistakes}
-              onChange={handleInputChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
+              {/* Sabaq Mistakes Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Sabaq Mistakes
+                </label>
+                <input
+                  type="number"
+                  name="sabaqMistakes"
+                  value={formData.sabaqMistakes}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
 
-          {/* Sabqi Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Sabqi
-            </label>
-            <input
-              type="text"
-              name="sabqi"
-              value={formData.sabqi}
-              onChange={handleInputChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
+              {/* Sabqi Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Sabqi
+                </label>
+                <input
+                  type="text"
+                  name="sabqi"
+                  value={formData.sabqi}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
 
-          {/* Sabqi Mistakes Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Sabqi Mistakes
-            </label>
-            <input
-              type="number"
-              name="sabqiMistakes"
-              value={formData.sabqiMistakes}
-              onChange={handleInputChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
+              {/* Sabqi Mistakes Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Sabqi Mistakes
+                </label>
+                <input
+                  type="number"
+                  name="sabqiMistakes"
+                  value={formData.sabqiMistakes}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
 
-          {/* Manzil Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Manzil
-            </label>
-            <input
-              type="text"
-              name="manzil"
-              value={formData.manzil}
-              onChange={handleInputChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
+              {/* Manzil Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Manzil
+                </label>
+                <input
+                  type="text"
+                  name="manzil"
+                  value={formData.manzil}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
 
-          {/* Manzil Mistakes Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Manzil Mistakes
-            </label>
-            <input
-              type="number"
-              name="manzilMistakes"
-              value={formData.manzilMistakes}
-              onChange={handleInputChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
+              {/* Manzil Mistakes Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Manzil Mistakes
+                </label>
+                <input
+                  type="number"
+                  name="manzilMistakes"
+                  value={formData.manzilMistakes}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+            </>
+          )}
 
           {/* Date Field */}
           <div>
@@ -476,7 +491,7 @@ const DailyReport = () => {
               name="date"
               value={formData.date}
               onChange={handleInputChange}
-              max={new Date().toISOString().split("T")[0]} // Prevent future dates
+              max={new Date().toISOString()} // Prevent future dates
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               required
             />
