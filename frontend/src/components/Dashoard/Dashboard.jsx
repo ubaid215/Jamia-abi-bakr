@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Header from "../layout/Header";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import PoorPerformersList from "../Students/PoorPerformersList";
+// import PoorPerformersList from "../Students/PoorPerformersList";
 
 
 
@@ -231,9 +231,9 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div>
+          {/* <div>
             <PoorPerformersList />
-          </div>
+          </div> */}
           
           </div>
         </div>

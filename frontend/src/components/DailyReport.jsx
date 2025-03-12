@@ -214,8 +214,11 @@ const DailyReport = () => {
     doc.text("Jamia Abi Bakar (R.A)", 105, 10, { align: "center" });
     doc.setFontSize(14);
     doc.text(`Student Name: ${student.fullName}`, 105, 20, { align: "center" });
-    doc.text(`Roll Number: ${student.rollNumber}`, 105, 30, {
-      align: "center",
+    doc.text(`Roll Number: ${student.rollNumber}`, 150, 30, {
+      align: "left",
+    });
+    doc.text(`Teacher Name: ${student.teacherName}`, 95, 30, {
+      align: "right",
     });
 
     // Add table using autoTable
@@ -280,6 +283,9 @@ const DailyReport = () => {
         <p className="text-lg text-gray-600">
           Roll Number: {student.rollNumber}
         </p>
+        <p className="text-lg text-gray-600">
+         Teacher Name: {student.teacherName}
+        </p>
       </div>
 
       {/* Date Filter */}
@@ -321,7 +327,16 @@ const DailyReport = () => {
           <option value="">Select Month</option>
           <option value="01">January</option>
           <option value="02">February</option>
-          {/* Add all months */}
+          <option value="03">March</option>
+          <option value="04">April</option>
+          <option value="05">May</option>
+          <option value="06">June</option>
+          <option value="07">July</option>
+          <option value="08">August</option>
+          <option value="09">September</option>
+          <option value="10">October</option>
+          <option value="11">November</option>
+          <option value="12">December</option>
         </select>
         <label className="block text-sm font-medium text-gray-700 mt-4">
           Year
@@ -392,7 +407,7 @@ const DailyReport = () => {
               {/* Sabaq Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Sabaq
+                  Sabaq lines
                 </label>
                 <input
                   type="text"
