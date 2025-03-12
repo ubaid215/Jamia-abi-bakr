@@ -7,7 +7,7 @@ const dailyReportRoutes = (io) => {
   // Save a daily report for a student
   router.post(
     "/:studentId/reports",
-    (req, res) => reportController.saveReport(req, res, io)
+    (req, res) => reportController.saveReport(req, res, io) // Pass `io` to saveReport
   );
 
   // Fetch reports for a student with date filter
@@ -16,7 +16,7 @@ const dailyReportRoutes = (io) => {
     reportController.getFilteredReports
   );
 
-  // Fetch reports for a student
+  // Fetch all reports for a student
   router.get(
     "/:studentId/reports",
     reportController.getReports

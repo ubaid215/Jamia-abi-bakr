@@ -84,12 +84,13 @@ const saveReport = async (req, res, io) => {
       return res.status(400).json({ success: false, message: "A report already exists for this date" });
     }
 
+
     // Calculate condition based on mistakes (only for "Present" attendance)
     let condition = "Good";
     if (attendance === "Present") {
-      if (sabaqMistakes > 2 || sabqiMistakes > 2 || manzilMistakes > 3) {
-        condition = "Below Average";
-      } else if (sabaqMistakes > 0 || sabqiMistakes > 1 || manzilMistakes > 1) {
+      if (sabaqMistakes > 1 || sabqiMistakes > 2 || manzilMistakes > 2) {
+        condition = "Need Focus";
+      } else if (sabaqMistakes === 1 || sabqiMistakes >= 1 || manzilMistakes >= 1) {
         condition = "Medium";
       }
     } else {
@@ -244,30 +245,64 @@ const getPerformanceData = async (req, res) => {
 // Fetch para completion data for a student
 const getParaCompletionData = async (req, res) => {
   try {
+    console.log("Request Params:", req.params);
     const { studentId } = req.params;
 
-    // Validate student ID
+    // Validate studentId
     if (!mongoose.Types.ObjectId.isValid(studentId)) {
       return res.status(400).json({ success: false, message: "Invalid student ID" });
     }
 
-    // Fetch all reports for the student
-    const reports = await DailyReport.find({ studentId });
+    // Check if student exists
+    const studentExists = await Student.findById(studentId);
+    if (!studentExists) {
+      return res.status(404).json({ success: false, message: "Student not found" });
+    }
 
-    // Calculate total lines completed
+    // Fetch daily reports for the student
+    const reports = await DailyReport.find({ studentId }).sort({ date: 1 });
+
     let totalLinesCompleted = 0;
+    let totalDays = new Set(); // Unique dates
+    const totalLinesInQuran = 8500;
+    const totalLinesInPara = 288;
+
     reports.forEach((report) => {
-      if (report.sabaq && typeof report.sabaq === "string") {
-        totalLinesCompleted += report.sabaq.split(",").length;
+      if (report.sabaq && !isNaN(report.sabaq)) {
+        totalLinesCompleted += Number(report.sabaq);
+        totalDays.add(new Date(report.date).toDateString()); // Store only unique days
       }
     });
 
-    res.status(200).json({ success: true, totalLinesCompleted });
+    const totalDaysCount = totalDays.size; // Number of unique days
+    const averageLinesPerDay = totalDaysCount > 0 ? (totalLinesCompleted / totalDaysCount) : 0;
+
+    // Calculate remaining lines
+    const remainingLinesInQuran = totalLinesInQuran - totalLinesCompleted;
+    const completedParas = Math.floor(totalLinesCompleted / totalLinesInPara);
+    const remainingLinesInPara = totalLinesInPara - (totalLinesCompleted % totalLinesInPara);
+
+    // Calculate estimated days to complete
+    const estimatedDaysToCompleteQuran = averageLinesPerDay > 0 ? Math.ceil(remainingLinesInQuran / averageLinesPerDay) : "N/A";
+    const estimatedDaysToCompletePara = averageLinesPerDay > 0 ? Math.ceil(remainingLinesInPara / averageLinesPerDay) : "N/A";
+
+    // Format average lines per day
+    const averageLinesPerDayFormatted = totalDaysCount > 0 ? averageLinesPerDay.toFixed(2) : "N/A";
+
+    res.status(200).json({ 
+      success: true, 
+      totalLinesCompleted, 
+      averageLinesPerDay: averageLinesPerDayFormatted, 
+      estimatedDaysToCompleteQuran, 
+      estimatedDaysToCompletePara 
+    });
   } catch (error) {
     console.error("Error fetching para completion data:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+
 
 // Export all functions
 module.exports = {
