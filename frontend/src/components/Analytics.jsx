@@ -35,6 +35,7 @@ const Analytics = () => {
     useState("N/A");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [filter, setFilter] = useState("all"); // "all", "weekly", "monthly"
   const totalLinesInPara = 288;
 
   const fetchPerformanceData = useCallback(async () => {
@@ -65,7 +66,7 @@ const Analytics = () => {
         setEstimatedDaysToCompleteQuran(
           response.data.estimatedDaysToCompleteQuran || "N/A"
         );
-        setAverageLinesPerDay(Number(response.data.averageLinesPerDay) || 0); // Ensure it's a number
+        setAverageLinesPerDay(Number(response.data.averageLinesPerDay) || 0);
       }
     } catch (error) {
       console.error(
@@ -87,11 +88,43 @@ const Analytics = () => {
     fetchData();
   }, [fetchPerformanceData, fetchParaCompletionData]);
 
+  // Calculate completed paras and lines in the current para
+  const completedParas = Math.floor(totalLinesCompleted / totalLinesInPara);
+  const linesInCurrentPara = totalLinesCompleted % totalLinesInPara;
+
+  // Current Para is always the next para (completedParas + 1)
+  const currentPara = completedParas + 1;
+
+  // Filter performance data based on the selected filter
+  const filteredPerformanceData = useMemo(() => {
+    const now = new Date();
+    switch (filter) {
+      case "weekly":
+        return performanceData.filter((report) => {
+          const reportDate = new Date(report.date);
+          const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          return reportDate >= oneWeekAgo;
+        });
+      case "monthly":
+        return performanceData.filter((report) => {
+          const reportDate = new Date(report.date);
+          const oneMonthAgo = new Date(
+            now.getFullYear(),
+            now.getMonth() - 1,
+            now.getDate()
+          );
+          return reportDate >= oneMonthAgo;
+        });
+      default:
+        return performanceData; // "all" filter
+    }
+  }, [performanceData, filter]);
+
   const performanceChartData = useMemo(
     () => ({
       labels:
-        performanceData.length > 0
-          ? performanceData.map((report) =>
+        filteredPerformanceData.length > 0
+          ? filteredPerformanceData.map((report) =>
               new Date(report.date).toLocaleDateString()
             )
           : ["No Data"],
@@ -99,8 +132,8 @@ const Analytics = () => {
         {
           label: "Condition",
           data:
-            performanceData.length > 0
-              ? performanceData.map((report) => {
+            filteredPerformanceData.length > 0
+              ? filteredPerformanceData.map((report) => {
                   switch (report.condition) {
                     case "Good":
                       return 3;
@@ -120,7 +153,7 @@ const Analytics = () => {
         },
       ],
     }),
-    [performanceData]
+    [filteredPerformanceData]
   );
 
   const paraCompletionData = useMemo(
@@ -128,7 +161,7 @@ const Analytics = () => {
       labels: ["Completed", "Remaining"],
       datasets: [
         {
-          data: [totalLinesCompleted, totalLinesInPara - totalLinesCompleted],
+          data: [linesInCurrentPara, totalLinesInPara - linesInCurrentPara],
           backgroundColor: [
             "rgba(75, 192, 192, 0.6)",
             "rgba(255, 99, 132, 0.6)",
@@ -138,17 +171,17 @@ const Analytics = () => {
         },
       ],
     }),
-    [totalLinesCompleted, totalLinesInPara]
+    [linesInCurrentPara, totalLinesInPara]
   );
 
   const daysToCompletePara = useMemo(() => {
     if (averageLinesPerDay > 0) {
       return Math.ceil(
-        (totalLinesInPara - totalLinesCompleted) / averageLinesPerDay
+        (totalLinesInPara - linesInCurrentPara) / averageLinesPerDay
       );
     }
-    return "N/A"; // Only return N/A if averageLinesPerDay is 0 or invalid
-  }, [averageLinesPerDay, totalLinesCompleted, totalLinesInPara]);
+    return "N/A";
+  }, [averageLinesPerDay, linesInCurrentPara, totalLinesInPara]);
 
   if (loading) {
     return <div className="text-center text-lg">Loading analytics...</div>;
@@ -170,7 +203,16 @@ const Analytics = () => {
           </div>
           <div className="flex flex-col justify-center">
             <p className="text-lg">
-              <strong>Total Lines Completed:</strong> {totalLinesCompleted} /{" "}
+              <strong>Total Lines Completed:</strong> {totalLinesCompleted}
+            </p>
+            <p className="text-lg">
+              <strong>Completed Paras:</strong> {completedParas}
+            </p>
+            <p className="text-lg">
+              <strong>Current Para:</strong> {currentPara}
+            </p>
+            <p className="text-lg">
+              <strong>Lines in Current Para:</strong> {linesInCurrentPara} /{" "}
               {totalLinesInPara}
             </p>
             <p className="text-lg">
@@ -178,34 +220,48 @@ const Analytics = () => {
               {averageLinesPerDay.toFixed(2)}
             </p>
             <p className="text-lg">
-              <strong>Estimated Days to Complete Para:</strong>{" "}
-              {averageLinesPerDay > 0
-                ? daysToCompletePara
-                : "Insufficient data to calculate"}
+              <strong>Estimated Days to Complete Current Para:</strong>{" "}
+              {daysToCompletePara}
             </p>
             <p className="text-lg">
               <strong>Estimated Days to Complete Quran:</strong>{" "}
               {estimatedDaysToCompleteQuran}
             </p>
-            
+           
           </div>
         </div>
       </div>
 
       <div>
-      <h3 className="text-xl font-semibold mb-1">Performance Over Time</h3>
-      <div className="w-full h-96">
-        <Line data={performanceChartData} />
+        <h3 className="text-xl font-semibold mb-4">Performance Over Time</h3>
+        {/* Filter Dropdown */}
+        <div className="mb-4">
+          <label htmlFor="filter" className="mr-2">
+            Filter:
+          </label>
+          <select
+            id="filter"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="p-2 border border-gray-300 rounded"
+          >
+            <option value="all">All Time</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </div>
+        <div className="w-full h-96">
+          <Line data={performanceChartData} />
+        </div>
+        {/* Minimal Explanation Box */}
+        <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <p className="text-sm text-gray-700">
+            <strong>Performance Scale:</strong>
+            <br />
+            3 - Good, 2 - Medium, 1 - Below Average, 0 - Need Focus
+          </p>
+        </div>
       </div>
-      {/* Minimal Explanation Box */}
-      <div className="mt-1 p-4 bg-gray-50 rounded-lg border border-gray-200">
-        <p className="text-sm text-gray-700">
-          <strong>Performance Scale:</strong>
-          <br />
-          3 - Good, 2 - Medium, 1 - Below Average, 0 - Need Focus
-        </p>
-      </div>
-    </div>
     </div>
   );
 };
