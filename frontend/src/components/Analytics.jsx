@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 import { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
@@ -33,9 +34,13 @@ const Analytics = () => {
   const [averageLinesPerDay, setAverageLinesPerDay] = useState(0);
   const [estimatedDaysToCompleteQuran, setEstimatedDaysToCompleteQuran] =
     useState("N/A");
+  const [performanceCategory, setPerformanceCategory] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState("all"); // "all", "weekly", "monthly"
+  const [filter, setFilter] = useState("all"); // "all", "weekly", "monthly", "custom"
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [dateRangeError, setDateRangeError] = useState("");
   const totalLinesInPara = 288;
 
   const fetchPerformanceData = useCallback(async () => {
@@ -46,6 +51,7 @@ const Analytics = () => {
       if (response.data.success) {
         setPerformanceData(response.data.reports);
         setAverageLinesPerDay(response.data.averageLinesPerDay || 0);
+        setPerformanceCategory(response.data.performanceCategory || "N/A");
       }
     } catch (error) {
       console.error(
@@ -115,10 +121,26 @@ const Analytics = () => {
           );
           return reportDate >= oneMonthAgo;
         });
+      case "custom":
+        if (!startDate || !endDate) {
+          setDateRangeError("Please select both start and end dates.");
+          return performanceData;
+        }
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        if (start > end) {
+          setDateRangeError("Start date cannot be greater than end date.");
+          return performanceData;
+        }
+        setDateRangeError("");
+        return performanceData.filter((report) => {
+          const reportDate = new Date(report.date);
+          return reportDate >= start && reportDate <= end;
+        });
       default:
         return performanceData; // "all" filter
     }
-  }, [performanceData, filter]);
+  }, [performanceData, filter, startDate, endDate]);
 
   const performanceChartData = useMemo(
     () => ({
@@ -183,6 +205,14 @@ const Analytics = () => {
     return "N/A";
   }, [averageLinesPerDay, linesInCurrentPara, totalLinesInPara]);
 
+  // Reset filter to "All Time" and clear date inputs
+  const resetFilter = () => {
+    setFilter("all");
+    setStartDate("");
+    setEndDate("");
+    setDateRangeError("");
+  };
+
   if (loading) {
     return <div className="text-center text-lg">Loading analytics...</div>;
   }
@@ -227,7 +257,9 @@ const Analytics = () => {
               <strong>Estimated Days to Complete Quran:</strong>{" "}
               {estimatedDaysToCompleteQuran}
             </p>
-           
+            <p className="text-lg">
+              <strong>Performance:</strong> {performanceCategory}
+            </p>
           </div>
         </div>
       </div>
@@ -248,8 +280,47 @@ const Analytics = () => {
             <option value="all">All Time</option>
             <option value="weekly">Weekly</option>
             <option value="monthly">Monthly</option>
+            <option value="custom">Custom Date Range</option>
           </select>
+          {/* Reset Filter Button */}
+          {filter === "custom" && (
+            <button
+              onClick={resetFilter}
+              className="ml-4 p-2 bg-gray-200 rounded hover:bg-gray-300"
+            >
+              Reset Filter
+            </button>
+          )}
         </div>
+        {/* Date Pickers for Custom Filter */}
+        {filter === "custom" && (
+          <div className="mb-4">
+            <label htmlFor="startDate" className="mr-2">
+              Start Date:
+            </label>
+            <input
+              type="date"
+              id="startDate"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="p-2 border border-gray-300 rounded"
+            />
+            <label htmlFor="endDate" className="ml-4 mr-2">
+              End Date:
+            </label>
+            <input
+              type="date"
+              id="endDate"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="p-2 border border-gray-300 rounded"
+            />
+            {/* Date Range Error Message */}
+            {dateRangeError && (
+              <p className="text-sm text-red-500 mt-2">{dateRangeError}</p>
+            )}
+          </div>
+        )}
         <div className="w-full h-96">
           <Line data={performanceChartData} />
         </div>
