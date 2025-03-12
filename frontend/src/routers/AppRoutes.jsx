@@ -10,6 +10,7 @@ import TeacherRegistration from "../components/Teacher/TeacherRegistration";
 import AllTeachers from "../components/Teacher/AllTeachers";
 import StudentCard from "../components/Students/StudentCard";
 import PoorPerformersList from "../components/Students/PoorPerformersList";
+import AllStudentsPerformanceGraph from "../components/AllStudentsPerformanceGraph";
 
 const AppRoutes = () => {
   return (
@@ -23,6 +24,7 @@ const AppRoutes = () => {
       <Route path="/student/:id/performance" element={<PoorPerformersList />} />
       <Route path="/student/:id" element={<DailyReport />} />
       <Route path="/student/:id" element={<Analytics />} />
+      <Route path="/student/performance/hifz" element={<AllStudentsPerformanceGraph />} />
       <Route path="/students/:id" element={<StudentDetails />} /> {/* Fixed this line */}
       <Route path="/logout" element={<Logout />} />
     </Routes>

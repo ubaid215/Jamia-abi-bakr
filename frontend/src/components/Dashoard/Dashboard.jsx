@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Header from "../layout/Header";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import AllStudentsPerformanceGraph from "../AllStudentsPerformanceGraph";
 // import PoorPerformersList from "../Students/PoorPerformersList";
 
 
@@ -174,7 +175,8 @@ const Dashboard = () => {
 
           {/* Total Students and Teachers Cards */}
           <div className="flex gap-10">
-            <div className="w-full h-[32] bg-gradient-to-r from-[#FB9858] to-[#FFC39E] rounded-3xl text-zinc-50 flex items-center justify-between gap-2 p-6 shadow-xl">
+            <div className="flex gap-20 mb-7">
+            <div className="w-full h-[32] bg-gradient-to-r from-[#FB9858] to-[#FFC39E] rounded-3xl text-zinc-50 flex items-center justify-between gap-2 p-6 shadow-md">
               <div>
                 <h5 className="font-bold text-3xl">{totalStudents}</h5>
                 <h1 className="font-light text-xl">Total Students</h1>
@@ -183,7 +185,7 @@ const Dashboard = () => {
                 <PiStudentFill size={50} color="#FB9858" className="bg-white rounded-full p-2" />
               </div>
             </div>
-            <div className="w-full h-[32] bg-gradient-to-r to-[#9A96E7] from-[#7C76DE] rounded-3xl text-zinc-50 flex items-center justify-between gap-2 p-6 shadow-xl">
+            <div className="w-full h-[32] bg-gradient-to-r to-[#9A96E7] from-[#7C76DE] rounded-3xl text-zinc-50 flex items-center justify-between gap-2 p-6 shadow-md">
               <div>
                 <h5 className="font-bold text-3xl">{totalTeachers}</h5>
                 <h1 className="font-light text-xl">Total Teachers</h1>
@@ -193,8 +195,14 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
+            </div>
+            
           
+          <div>
+          <AllStudentsPerformanceGraph classType="Hifz"/>
         </div>
+        </div>
+        
 
         <div id="right" className="flex-1 rounded-md p-4">
           <div>

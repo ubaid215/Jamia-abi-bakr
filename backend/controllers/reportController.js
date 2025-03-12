@@ -84,7 +84,6 @@ const saveReport = async (req, res, io) => {
       return res.status(400).json({ success: false, message: "A report already exists for this date" });
     }
 
-
     // Calculate condition based on mistakes (only for "Present" attendance)
     let condition = "Good";
     if (attendance === "Present") {
@@ -302,7 +301,24 @@ const getParaCompletionData = async (req, res) => {
   }
 };
 
+// Fetch performance data for Hifz students
+const hifzPerformance = async (req, res) => {
+  try {
+    // Fetch students with classType = "Hifz"
+    const hifzStudents = await Student.find({ classType: "Hifz" });
+    if (hifzStudents.length === 0) {
+      return res.status(404).json({ success: false, message: "No Hifz students found" });
+    }
 
+    const studentIds = hifzStudents.map((student) => student._id);
+
+    // Fetch performance reports for Hifz students
+    const reports = await DailyReport.find({ studentId: { $in: studentIds } }).sort({ date: 1 });
+    res.status(200).json({ success: true, reports });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 // Export all functions
 module.exports = {
@@ -313,4 +329,5 @@ module.exports = {
   getPerformanceData,
   getParaCompletionData,
   getPoorPerformers,
+  hifzPerformance,
 };

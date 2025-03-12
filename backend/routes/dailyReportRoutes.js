@@ -46,6 +46,12 @@ const dailyReportRoutes = (io) => {
     reportController.getPoorPerformers
   );
 
+  // Fetch performance data for Hifz students
+  router.get(
+    "/performance/hifz",
+    reportController.hifzPerformance
+  );
+
   return router;
 };
 
