@@ -8,7 +8,6 @@ const TeacherRegistration = () => {
     cnic: "",
     phoneNumber: "",
     address: "",
-    // class: "",
     classType: "",
     cv: null,
   });
@@ -108,7 +107,8 @@ const TeacherRegistration = () => {
               required
             >
               <option value="">Select Class Type</option>
-              <option value="Hifz">Hifz</option>
+              <option value="Hifz-A">Hifz-A</option>
+              <option value="Hifz-B">Hifz-B</option>
               <option value="Nazra">Nazra</option>
               <option value="Dars-e-Nizami">Dars-e-Nizami</option>
               <option value="Academic">Academic</option>

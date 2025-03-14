@@ -26,23 +26,23 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.email || !formData.password) {
-      setError('Email and password are required');
+      setError("Email and password are required");
       return;
     }
   
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:5000/api/admin/login', {
+      const response = await axios.post("http://localhost:5000/api/admin/login", {
         email: formData.email,
         password: formData.password,
       });
-      console.log('Login Response:', response.data); // Debugging
+      console.log("Login Response:", response.data); // Debugging
       const { token, admin } = response.data;
       authLogin(token, admin); // Save token and admin data
-      navigate('/'); // Redirect to dashboard
+      navigate("/"); // Redirect to dashboard
     } catch (error) {
-      console.error('Login Error:', error.response?.data); // Debugging
-      setError(error.response?.data?.message || 'Login failed');
+      console.error("Login Error:", error.response?.data); // Debugging
+      setError(error.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import StudentList from "../pages/StudentList";
 import Logout from "../pages/Logout";
 import Login from "../pages/Login";
@@ -16,42 +17,304 @@ import PoorPerformersList from "../components/Students/PoorPerformersList";
 import AllStudentsPerformanceGraph from "../components/AllStudentsPerformanceGraph";
 import CreateUser from "../components/Admin/CreateUser";
 import UserList from "../components/Admin/UserList";
-import ProtectedRoute from "../components/ProtectedRoute"; //Protection of routes
+import ProtectedRoute from "../components/ProtectedRoute"; // Protection of routes
 import ForgotPassword from "../pages/ForgotPassword";
 
 const AppRoutes = () => {
+  const location = useLocation(); // Track the current route location
+
+  // Animation variants for page transitions
+  const pageVariants = {
+    initial: { opacity: 0, y: 50 }, // Start slightly below and invisible
+    animate: { opacity: 1, y: 0 }, // Fade in and slide up to normal position
+    exit: { opacity: 0, y: -50 }, // Fade out and slide up slightly
+  };
+
+  // Transition settings for smooth animations
+  const pageTransition = {
+    type: "tween", // Smooth transition
+    ease: "easeInOut", // Easing function
+    duration: 0.3, // Animation duration in seconds
+  };
+
   return (
-    <Routes>
-      {/* Public Routes */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/reset-password" element={<ForgotPassword />} />
-
-      {/* Protected Routes */}
-      <Route element={<ProtectedRoute />}>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/student/studentlist" element={<StudentList />} />
-        <Route path="/teachers/allteachers" element={<AllTeachers />} />
-        <Route path="/student/registration" element={<StudentRegistration />} />
-        <Route path="/teacher/registration" element={<TeacherRegistration />} />
-        <Route path="/student/card" element={<StudentCard />} />
-        <Route path="/student/:id/performance" element={<PoorPerformersList />} />
-        <Route path="/student/:id" element={<DailyReport />} />
-        <Route path="/student/:id" element={<Analytics />} />
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        {/* Public Routes */}
         <Route
-          path="/student/performance/hifz"
-          element={<AllStudentsPerformanceGraph />}
+          path="/login"
+          element={
+            <motion.div
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={pageVariants}
+              transition={pageTransition}
+            >
+              <Login />
+            </motion.div>
+          }
         />
-        <Route path="/students/:id" element={<StudentDetails />} />
-        <Route path="/logout" element={<Logout />} />
-        <Route path="/admin-profile" element={<Profile />} />
-        <Route path="/create-user" element={<CreateUser />} />
-        <Route path="/user-list" element={<UserList />} />
-      </Route>
+        <Route
+          path="/register"
+          element={
+            <motion.div
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={pageVariants}
+              transition={pageTransition}
+            >
+              <Register />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <motion.div
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={pageVariants}
+              transition={pageTransition}
+            >
+              <ForgotPassword />
+            </motion.div>
+          }
+        />
 
-      {/* Fallback Route (Redirect to Login if no match) */}
-      <Route path="*" element={<Login />} />
-    </Routes>
+        {/* Protected Routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route
+            path="/"
+            element={
+              <motion.div
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageVariants}
+                transition={pageTransition}
+              >
+                <Dashboard />
+              </motion.div>
+            }
+          />
+          <Route
+            path="/student/studentlist"
+            element={
+              <motion.div
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageVariants}
+                transition={pageTransition}
+              >
+                <StudentList />
+              </motion.div>
+            }
+          />
+          <Route
+            path="/teachers/allteachers"
+            element={
+              <motion.div
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageVariants}
+                transition={pageTransition}
+              >
+                <AllTeachers />
+              </motion.div>
+            }
+          />
+          <Route
+            path="/student/registration"
+            element={
+              <motion.div
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageVariants}
+                transition={pageTransition}
+              >
+                <StudentRegistration />
+              </motion.div>
+            }
+          />
+          <Route
+            path="/teacher/registration"
+            element={
+              <motion.div
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageVariants}
+                transition={pageTransition}
+              >
+                <TeacherRegistration />
+              </motion.div>
+            }
+          />
+          <Route
+            path="/student/card"
+            element={
+              <motion.div
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageVariants}
+                transition={pageTransition}
+              >
+                <StudentCard />
+              </motion.div>
+            }
+          />
+          <Route
+            path="/student/:id/performance"
+            element={
+              <motion.div
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageVariants}
+                transition={pageTransition}
+              >
+                <PoorPerformersList />
+              </motion.div>
+            }
+          />
+          <Route
+            path="/student/:id"
+            element={
+              <motion.div
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageVariants}
+                transition={pageTransition}
+              >
+                <DailyReport />
+              </motion.div>
+            }
+          />
+          <Route
+            path="/student/:id"
+            element={
+              <motion.div
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageVariants}
+                transition={pageTransition}
+              >
+                <Analytics />
+              </motion.div>
+            }
+          />
+          <Route
+            path="/student/performance/hifz"
+            element={
+              <motion.div
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageVariants}
+                transition={pageTransition}
+              >
+                <AllStudentsPerformanceGraph />
+              </motion.div>
+            }
+          />
+          <Route
+            path="/students/:id"
+            element={
+              <motion.div
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageVariants}
+                transition={pageTransition}
+              >
+                <StudentDetails />
+              </motion.div>
+            }
+          />
+          <Route
+            path="/logout"
+            element={
+              <motion.div
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageVariants}
+                transition={pageTransition}
+              >
+                <Logout />
+              </motion.div>
+            }
+          />
+          <Route
+            path="/admin-profile"
+            element={
+              <motion.div
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageVariants}
+                transition={pageTransition}
+              >
+                <Profile />
+              </motion.div>
+            }
+          />
+          <Route
+            path="/create-user"
+            element={
+              <motion.div
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageVariants}
+                transition={pageTransition}
+              >
+                <CreateUser />
+              </motion.div>
+            }
+          />
+          <Route
+            path="/user-list"
+            element={
+              <motion.div
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageVariants}
+                transition={pageTransition}
+              >
+                <UserList />
+              </motion.div>
+            }
+          />
+        </Route>
+
+        {/* Fallback Route (Redirect to Login if no match) */}
+        <Route
+          path="*"
+          element={
+            <motion.div
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={pageVariants}
+              transition={pageTransition}
+            >
+              <Login />
+            </motion.div>
+          }
+        />
+      </Routes>
+    </AnimatePresence>
   );
 };
 

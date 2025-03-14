@@ -13,7 +13,7 @@ const StudentRegistration = () => {
     idCardNumber: "",
     permanentAddress: "",
     currentAddress: "",
-    classType: "Hifz",
+    classType: "",
     educationDetail: "",
     teacherName: "",
     guardian: {
@@ -279,7 +279,8 @@ const StudentRegistration = () => {
                   errors.classType ? "border-red-500" : "border-gray-300"
                 } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
               >
-                <option value="Hifz">Hifz</option>
+                <option value="Hifz-A">Hifz-A</option>
+                <option value="Hifz-B">Hifz-B</option>
                 <option value="Nazra">Nazra</option>
                 <option value="Dars-e-Nizami">Dars-e-Nizami</option>
                 <option value="Academic">Academic</option>

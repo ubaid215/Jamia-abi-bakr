@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { FaBars, FaHome, FaUser, FaCog, FaSignOutAlt, FaChevronDown, FaChevronUp, FaChalkboardTeacher } from "react-icons/fa";
+import {
+  FaBars,
+  FaHome,
+  FaUser,
+  FaCog,
+  FaSignOutAlt,
+  FaChevronDown,
+  FaChevronUp,
+  FaChalkboardTeacher,
+} from "react-icons/fa";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
@@ -17,15 +26,17 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { logout } = useAuth();
 
   const toggleStudentDropdown = () => setIsStudentOpen(!isStudentOpen);
-  
+
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
     <div
-      className={`h-screen ${isOpen ? "w-52 px-3" : "w-16"} transition-all duration-300  fixed left-0 top-0 z-50`}
+      className={`h-screen ${
+        isOpen ? "w-52 px-3" : "w-16"
+      } transition-all duration-300  fixed left-0 top-0 z-50`}
       style={{ backgroundColor: sidebarColors.bg, color: sidebarColors.text }}
     >
       <div className="p-4 flex justify-between items-center">
@@ -40,8 +51,15 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <li className="mb-2">
             <Link
               to="/"
-              className={`flex items-center p-3 rounded-lg ${location.pathname === "/" ? "font-bold" : ""}`}
-              style={{ backgroundColor: location.pathname === "/" ? sidebarColors.hover : "transparent" }}
+              className={`flex items-center p-3 rounded-lg ${
+                location.pathname === "/" ? "font-bold" : ""
+              }`}
+              style={{
+                backgroundColor:
+                  location.pathname === "/"
+                    ? sidebarColors.hover
+                    : "transparent",
+              }}
             >
               <FaHome className="text-xl" />
               {isOpen && <span className="ml-3">Dashboard</span>}
@@ -65,10 +83,16 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 <li className="mb-2">
                   <Link
                     to="/student/studentlist"
-                    className={`flex items-center p-2 rounded-lg ${location.pathname === "/student/studentlist" ? "font-bold" : ""}`}
+                    className={`flex items-center p-2 rounded-lg ${
+                      location.pathname === "/student/studentlist"
+                        ? "font-bold"
+                        : ""
+                    }`}
                     style={{
                       backgroundColor:
-                        location.pathname === "/student/studentlist" ? sidebarColors.hover : "transparent",
+                        location.pathname === "/student/studentlist"
+                          ? sidebarColors.hover
+                          : "transparent",
                     }}
                   >
                     <span>Student List</span>
@@ -78,22 +102,34 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             )}
           </li>
 
-          <li className="mb-2">
-            <Link
-              to="/teachers/allteahcers"
-              className={`flex items-center p-3 rounded-lg ${location.pathname === "/teachers/allteahcers" ? "font-bold" : ""}`}
-              style={{ backgroundColor: location.pathname === "/teachers/allteahcers" ? sidebarColors.hover : "transparent" }}
-            >
-              <FaChalkboardTeacher className="text-xl" />
-              {isOpen && <span className="ml-3">Teachers</span>}
-            </Link>
-          </li>
+          <Link
+            to="/teachers/allteachers" // Fixed typo
+            className={`flex items-center p-3 rounded-lg ${
+              location.pathname === "/teachers/allteachers" ? "font-bold" : ""
+            }`}
+            style={{
+              backgroundColor:
+                location.pathname === "/teachers/allteachers"
+                  ? sidebarColors.hover
+                  : "transparent",
+            }}
+          >
+            <FaChalkboardTeacher className="text-xl" />
+            {isOpen && <span className="ml-3">Teachers</span>}
+          </Link>
 
           <li className="mb-2">
             <Link
               to="/settings"
-              className={`flex items-center p-3 rounded-lg ${location.pathname === "/settings" ? "font-bold" : ""}`}
-              style={{ backgroundColor: location.pathname === "/settings" ? sidebarColors.hover : "transparent" }}
+              className={`flex items-center p-3 rounded-lg ${
+                location.pathname === "/settings" ? "font-bold" : ""
+              }`}
+              style={{
+                backgroundColor:
+                  location.pathname === "/settings"
+                    ? sidebarColors.hover
+                    : "transparent",
+              }}
             >
               <FaCog className="text-xl" />
               {isOpen && <span className="ml-3">Settings</span>}
@@ -128,7 +164,9 @@ const Layout = ({ children }) => {
 
       {/* Main Content */}
       <div
-        className={`flex-1 min-h-screen transition-all duration-300 ${isOpen ? "ml-52" : "ml-16"}`}
+        className={`flex-1 min-h-screen transition-all duration-300 ${
+          isOpen ? "ml-52" : "ml-16"
+        }`}
       >
         {/* Page content directly without the welcome bar */}
         {children}

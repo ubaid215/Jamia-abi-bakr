@@ -19,7 +19,7 @@ const studentSchema = new mongoose.Schema({
   classType: { 
     type: String, 
     required: true, 
-    enum: ["Hifz", "Nazra", "Dars-e-Nizami", "Academic"] 
+    enum: ["Hifz-A","Hifz-B", "Nazra", "Dars-e-Nizami", "Academic"] 
   },
   educationDetail: { type: String },
   teacherName: { type: String },
