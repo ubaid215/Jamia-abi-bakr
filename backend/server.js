@@ -7,6 +7,8 @@ const connectDB = require("./config/db");
 const studentRoutes = require("./routes/studentRoutes");
 const dailyReportRoutes = require("./routes/dailyReportRoutes");
 const teacherRoutes = require("./routes/teacherRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const userRoutes = require("./routes/userRoutes");
 const path = require("path");
 
 // Load environment variables
@@ -34,7 +36,7 @@ app.use(express.json());
 app.use(
   cors({
     origin: "http://localhost:5173",
-    credentials: true, // Allow credentials (e.g., cookies)
+    credentials: true, 
   })
 );
 
@@ -45,6 +47,19 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/students", studentRoutes);
 app.use("/api/students", dailyReportRoutes(io)); // Pass `io` to dailyReportRoutes
 app.use("/api/teachers", teacherRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/users", userRoutes);
+
+// Health check route
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: err.message || 'Internal Server Error' });
+});
 
 // Socket.IO connection
 io.on("connection", (socket) => {

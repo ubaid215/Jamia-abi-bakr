@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FaBars, FaHome, FaUser, FaCog, FaSignOutAlt, FaChevronDown, FaChevronUp, FaChalkboardTeacher } from "react-icons/fa";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const sidebarColors = {
   bg: "#242A7C", // Dark Blue Background
@@ -12,8 +13,15 @@ const sidebarColors = {
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const [isStudentOpen, setIsStudentOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const toggleStudentDropdown = () => setIsStudentOpen(!isStudentOpen);
+  
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <div
@@ -93,13 +101,13 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           </li>
 
           <li className="mb-2">
-            <Link
-              to="/logout"
-              className="flex items-center p-3 rounded-lg hover:opacity-80"
+            <button
+              onClick={handleLogout}
+              className="flex items-center p-3 rounded-lg hover:opacity-80 w-full text-left"
             >
               <FaSignOutAlt className="text-xl" />
               {isOpen && <span className="ml-3">Logout</span>}
-            </Link>
+            </button>
           </li>
         </ul>
       </nav>
@@ -120,8 +128,9 @@ const Layout = ({ children }) => {
 
       {/* Main Content */}
       <div
-        className={`flex-1 min-h-screen transition-all duration-300 ${isOpen ? "ml-38" : "ml-2"} p-6`}
+        className={`flex-1 min-h-screen transition-all duration-300 ${isOpen ? "ml-52" : "ml-16"}`}
       >
+        {/* Page content directly without the welcome bar */}
         {children}
       </div>
     </div>

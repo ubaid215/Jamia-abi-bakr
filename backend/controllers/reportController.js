@@ -31,7 +31,10 @@ const checkWeeklyPerformance = async (studentId) => {
 // Fetch students with poor performance
 const getPoorPerformers = async (req, res) => {
   try {
+    console.log("Fetching poor performers...");
     const allStudents = await Student.find(); // Fetch all students
+    console.log(`Found ${allStudents.length} total students`);
+    
     const poorPerformers = [];
 
     // Check each student's performance
@@ -41,7 +44,8 @@ const getPoorPerformers = async (req, res) => {
         poorPerformers.push(student);
       }
     }
-
+    
+    console.log(`Found ${poorPerformers.length} poor performers`);
     res.status(200).json({ success: true, students: poorPerformers });
   } catch (error) {
     console.error("Error in getPoorPerformers:", error);
@@ -87,9 +91,9 @@ const saveReport = async (req, res, io) => {
     // Calculate condition based on mistakes (only for "Present" attendance)
     let condition = "Good";
     if (attendance === "Present") {
-      if (sabaqMistakes > 1 || sabqiMistakes > 2 || manzilMistakes > 2) {
-        condition = "Need Focus";
-      } else if (sabaqMistakes === 1 || sabqiMistakes >= 1 || manzilMistakes >= 1) {
+      if (sabaqMistakes > 2 || sabqiMistakes > 2 || manzilMistakes > 3) {
+        condition = "Below Average";
+      } else if (sabaqMistakes > 0 || sabqiMistakes > 1 || manzilMistakes > 1) {
         condition = "Medium";
       }
     } else {
@@ -119,8 +123,8 @@ const saveReport = async (req, res, io) => {
         if (student) {
           const alertMessage = `Alert: Student ${student.fullName} (Roll Number: ${student.rollNumber}) is performing below average. Condition: ${condition}`;
 
-          // Send real-time notification to admin
-          io.emit("alert", {
+          // FIXED: Changed event name to "poorPerformerAlert" to match frontend
+          io.emit("poorPerformerAlert", {
             studentName: student.fullName,
             rollNumber: student.rollNumber,
             condition,
@@ -138,6 +142,7 @@ const saveReport = async (req, res, io) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 // Fetch reports for a student with date filter
 const getFilteredReports = async (req, res) => {
@@ -244,62 +249,31 @@ const getPerformanceData = async (req, res) => {
 // Fetch para completion data for a student
 const getParaCompletionData = async (req, res) => {
   try {
-    console.log("Request Params:", req.params);
     const { studentId } = req.params;
 
-    // Validate studentId
+    // Validate student ID
     if (!mongoose.Types.ObjectId.isValid(studentId)) {
       return res.status(400).json({ success: false, message: "Invalid student ID" });
     }
 
-    // Check if student exists
-    const studentExists = await Student.findById(studentId);
-    if (!studentExists) {
-      return res.status(404).json({ success: false, message: "Student not found" });
-    }
+    // Fetch all reports for the student
+    const reports = await DailyReport.find({ studentId });
 
-    // Fetch daily reports for the student
-    const reports = await DailyReport.find({ studentId }).sort({ date: 1 });
-
+    // Calculate total lines completed
     let totalLinesCompleted = 0;
-    let totalDays = new Set(); // Unique dates
-    const totalLinesInQuran = 8500;
-    const totalLinesInPara = 288;
-
     reports.forEach((report) => {
-      if (report.sabaq && !isNaN(report.sabaq)) {
-        totalLinesCompleted += Number(report.sabaq);
-        totalDays.add(new Date(report.date).toDateString()); // Store only unique days
+      if (report.sabaq && typeof report.sabaq === "string") {
+        totalLinesCompleted += report.sabaq.split(",").length;
       }
     });
 
-    const totalDaysCount = totalDays.size; // Number of unique days
-    const averageLinesPerDay = totalDaysCount > 0 ? (totalLinesCompleted / totalDaysCount) : 0;
-
-    // Calculate remaining lines
-    const remainingLinesInQuran = totalLinesInQuran - totalLinesCompleted;
-    const completedParas = Math.floor(totalLinesCompleted / totalLinesInPara);
-    const remainingLinesInPara = totalLinesInPara - (totalLinesCompleted % totalLinesInPara);
-
-    // Calculate estimated days to complete
-    const estimatedDaysToCompleteQuran = averageLinesPerDay > 0 ? Math.ceil(remainingLinesInQuran / averageLinesPerDay) : "N/A";
-    const estimatedDaysToCompletePara = averageLinesPerDay > 0 ? Math.ceil(remainingLinesInPara / averageLinesPerDay) : "N/A";
-
-    // Format average lines per day
-    const averageLinesPerDayFormatted = totalDaysCount > 0 ? averageLinesPerDay.toFixed(2) : "N/A";
-
-    res.status(200).json({ 
-      success: true, 
-      totalLinesCompleted, 
-      averageLinesPerDay: averageLinesPerDayFormatted, 
-      estimatedDaysToCompleteQuran, 
-      estimatedDaysToCompletePara 
-    });
+    res.status(200).json({ success: true, totalLinesCompleted });
   } catch (error) {
     console.error("Error fetching para completion data:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 // Fetch performance data for Hifz students
 const hifzPerformance = async (req, res) => {

@@ -34,7 +34,6 @@ const Analytics = () => {
   const [averageLinesPerDay, setAverageLinesPerDay] = useState(0);
   const [estimatedDaysToCompleteQuran, setEstimatedDaysToCompleteQuran] =
     useState("N/A");
-  const [performanceCategory, setPerformanceCategory] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState("all"); // "all", "weekly", "monthly", "custom"
@@ -51,7 +50,6 @@ const Analytics = () => {
       if (response.data.success) {
         setPerformanceData(response.data.reports);
         setAverageLinesPerDay(response.data.averageLinesPerDay || 0);
-        setPerformanceCategory(response.data.performanceCategory || "N/A");
       }
     } catch (error) {
       console.error(
@@ -257,9 +255,7 @@ const Analytics = () => {
               <strong>Estimated Days to Complete Quran:</strong>{" "}
               {estimatedDaysToCompleteQuran}
             </p>
-            <p className="text-lg">
-              <strong>Performance:</strong> {performanceCategory}
-            </p>
+            
           </div>
         </div>
       </div>

@@ -83,9 +83,9 @@ const Notification = () => {
           </div>
           <div className="max-h-64 overflow-y-auto">
             {notifications.length > 0 ? (
-              notifications.map((notification, index) => (
+              notifications.map((notification) => (
                 <div
-                  key={index} // Use a unique key (replace with notification.id if available)
+                  key={`${notification.timestamp}-${notification.rollNumber}`} // Use a unique key (replace with notification.id if available)
                   className="p-4 border-b border-gray-200 hover:bg-gray-50"
                 >
                   <p className="text-sm text-gray-700">

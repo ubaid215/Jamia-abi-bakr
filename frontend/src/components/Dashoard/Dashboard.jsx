@@ -1,33 +1,44 @@
-import { FaArrowDown, FaChalkboardTeacher, FaPlus } from "react-icons/fa";
+import { FaChalkboardTeacher, FaPlus, FaSearch } from "react-icons/fa";
 import { PiStudentFill } from "react-icons/pi";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Header from "../layout/Header";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import AllStudentsPerformanceGraph from "../AllStudentsPerformanceGraph";
-// import PoorPerformersList from "../Students/PoorPerformersList";
-
+import PoorPerformersList from "../Students/PoorPerformersList";
 
 
 const Dashboard = () => {
   const [ayah, setAyah] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [totalStudents, setTotalStudents] = useState(0); // State for total students
-  const [totalTeachers, setTotalTeachers] = useState(0); // State for total teachers
-  const [searchTerm, setSearchTerm] = useState(""); // State for search term
-  const [searchResults, setSearchResults] = useState([]); // State for search results
+  const [totalStudents, setTotalStudents] = useState(0);
+  const [totalTeachers, setTotalTeachers] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Fetch random Ayah on component mount
   useEffect(() => {
-    const randomAyahNumber = Math.floor(Math.random() * 6236) + 1; // Random Ayah between 1 and 6236
+    const randomAyahNumber = Math.floor(Math.random() * 6236) + 1;
     fetch(`https://api.alquran.cloud/v1/ayah/${randomAyahNumber}/editions/quran-uthmani,ur.junagarhi`)
       .then((response) => response.json())
       .then((data) => {
         if (data.status === "OK") {
-          const arabicText = data.data[0].text; // Arabic Ayah
-          const translation = data.data[1].text; // English Translation
+          const arabicText = data.data[0].text;
+          const translation = data.data[1].text;
           const surahName = data.data[0].surah.englishName;
           const verseNumber = data.data[0].numberInSurah;
           setAyah({ arabicText, translation, surahName, verseNumber });
@@ -40,209 +51,191 @@ const Dashboard = () => {
       });
   }, []);
 
-  // Fetch total number of students on component mount
+  // Fetch total number of students and teachers
   useEffect(() => {
-    const fetchTotalStudents = async () => {
+    const fetchData = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/students/count");
-        if (response.data && response.data.success) {
-          setTotalStudents(response.data.totalStudents);
+        const [studentsResponse, teachersResponse] = await Promise.all([
+          axios.get("http://localhost:5000/api/students/count"),
+          axios.get("http://localhost:5000/api/teachers/count")
+        ]);
+        
+        if (studentsResponse.data && studentsResponse.data.success) {
+          setTotalStudents(studentsResponse.data.totalStudents);
+        }
+        
+        if (teachersResponse.data && teachersResponse.data.success) {
+          setTotalTeachers(teachersResponse.data.totalTeachers);
         }
       } catch (error) {
-        console.error("Error fetching total students:", error);
+        console.error("Error fetching data:", error);
       }
     };
 
-    fetchTotalStudents();
+    fetchData();
   }, []);
 
-  // Fetch total number of teachers on component mount
+  // Handle search with debounce
   useEffect(() => {
-    const fetchTotalTeachers = async () => {
-      try {
-        const response = await axios.get("http://localhost:5000/api/teachers/count");
-        if (response.data && response.data.success) {
-          setTotalTeachers(response.data.totalTeachers);
-        }
-      } catch (error) {
-        console.error("Error fetching total teachers:", error);
+    const debounceTimer = setTimeout(() => {
+      if (searchTerm) {
+        searchStudents(searchTerm);
+      } else {
+        setSearchResults([]);
       }
-    };
+    }, 300);
 
-    fetchTotalTeachers();
-  }, []);
+    return () => clearTimeout(debounceTimer);
+  }, [searchTerm]);
 
-  // Handle search
-  const handleSearch = async (term) => {
-    setSearchTerm(term);
-    if (term) {
-      try {
-        const response = await axios.get(`http://localhost:5000/api/students?search=${term}`);
-        if (response.data && response.data.success) {
-          setSearchResults(response.data.students);
-        }
-      } catch (error) {
-        console.error("Error searching students:", error);
+  const searchStudents = async (term) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/api/students?search=${term}`);
+      if (response.data && response.data.success) {
+        setSearchResults(response.data.students);
       }
-    } else {
-      setSearchResults([]); // Clear search results if search term is empty
+    } catch (error) {
+      console.error("Error searching students:", error);
     }
   };
 
   return (
-    <div className="w-full h-auto">
+    <div className="w-full min-h-screen bg-gray-50">
       <Header />
 
-      {/* Dashboard Title & Dropdown Button */}
-      <div className="px-10 flex items-center justify-between">
-        <h1 className="font-bold text-2xl">Dashboard</h1>
-        <div className="relative">
-          <button
-            className="bg-[#E69D52] shadow-xl text-white flex items-center gap-2 p-2 rounded-md cursor-pointer"
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)} // Toggle dropdown
-          >
-            Registeration <FaPlus />
-          </button>
+      <div className="container mx-auto p-4">
+        {/* Dashboard Header & Registration Button */}
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
+          <div className="relative" ref={dropdownRef}>
+            <button
+              className="bg-[#E69D52] hover:bg-[#d68c41] transition-colors shadow-lg text-white flex items-center gap-2 px-4 py-2 rounded-md font-medium"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            >
+              Registration <FaPlus />
+            </button>
 
-          {/* Dropdown Menu - Show only when `isDropdownOpen` is true */}
-          {isDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-2">
-              <Link
-                to="/student/registration"
-                className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-              >
-                Student Registration
-              </Link>
-              <Link
-                to="/teacher/registration"
-                className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-              >
-                Teacher Registration
-              </Link>
+            {isDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-xl py-2 z-10 border border-gray-100">
+                <Link
+                  to="/student/registration"
+                  className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100"
+                >
+                  <PiStudentFill className="mr-3" /> Student Registration
+                </Link>
+                <Link
+                  to="/teacher/registration"
+                  className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100"
+                >
+                  <FaChalkboardTeacher className="mr-3" /> Teacher Registration
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Ayah Box with improved styling */}
+        <div className="bg-gradient-to-r from-[#e24c01] to-[#f86e2d] text-white rounded-xl shadow-lg p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-3 flex items-center">
+            <span className="text-2xl mr-2">📖</span> Daily Quran Verse
+          </h2>
+          {loading ? (
+            <div className="animate-pulse flex flex-col gap-4">
+              <div className="h-8 bg-white bg-opacity-20 rounded w-3/4 ml-auto"></div>
+              <div className="h-4 bg-white bg-opacity-20 rounded w-full"></div>
+              <div className="h-4 bg-white bg-opacity-20 rounded w-1/2"></div>
             </div>
+          ) : error ? (
+            <p>Failed to load verse. Please refresh to try again.</p>
+          ) : (
+            <>
+              <p className="text-2xl text-right font-[Lateef] mb-4 leading-relaxed">{ayah.arabicText}</p>
+              <p className="italic mb-3 text-white text-opacity-90">`{ayah.translation}`</p>
+              <div className="flex items-center text-sm text-white text-opacity-80">
+                <span className="mr-1">📍</span>
+                <span>Surah {ayah.surahName} - Ayah {ayah.verseNumber}</span>
+              </div>
+            </>
           )}
         </div>
-      </div>
 
-      {/* Welcome Box with Quran Ayah */}
-      <div className="px-10 py-3 my-6 bg-[#e24c01] text-white rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-3">📖 Random Ayah</h2>
-        {loading ? (
-          <p>Loading...</p>
-        ) : error ? (
-          <p>Error: {error.message}</p>
-        ) : (
-          <>
-            <p className="text-2xl text-right font-[Lateef] mb-4">{ayah.arabicText}</p>
-            <p className="italic mb-2">`{ayah.translation}`</p>
-            <p className="text-sm">📍 {ayah.surahName} - Ayah {ayah.verseNumber}</p>
-          </>
-        )}
-      </div>
+        {/* Main Dashboard Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Side - 2/3 width */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Search Bar with icon */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <FaSearch className="text-gray-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search students by name, father's name, address, or phone number"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+              />
+            </div>
 
-      {/* Main content for displaying overall system */}
-      <div className="px-10 py-5 w-full h-screen flex gap-[1em]">
-        <div id="left" className="flex-2 rounded-md p-4">
-          {/* Search Bar */}
-          <div className="mb-6">
-            <input
-              type="text"
-              placeholder="Search students by name, father's name, address, or phone number"
-              value={searchTerm}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {/* Display Search Results */}
-          {searchResults.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-4">Search Results</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {searchResults.map((student) => (
-                  <div
-                    key={student._id}
-                    className="bg-white shadow-md p-4 rounded-lg"
-                  >
-                    <h3 className="text-lg font-semibold">{student.fullName}</h3>
-                    <p>Class: {student.classType}</p>
-                    <p>Admission Number: {student.admissionNumber}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Total Students and Teachers Cards */}
-          <div className="flex gap-10">
-            <div className="flex gap-20 mb-7">
-            <div className="w-full h-[32] bg-gradient-to-r from-[#FB9858] to-[#FFC39E] rounded-3xl text-zinc-50 flex items-center justify-between gap-2 p-6 shadow-md">
-              <div>
-                <h5 className="font-bold text-3xl">{totalStudents}</h5>
-                <h1 className="font-light text-xl">Total Students</h1>
-              </div>
-              <div>
-                <PiStudentFill size={50} color="#FB9858" className="bg-white rounded-full p-2" />
-              </div>
-            </div>
-            <div className="w-full h-[32] bg-gradient-to-r to-[#9A96E7] from-[#7C76DE] rounded-3xl text-zinc-50 flex items-center justify-between gap-2 p-6 shadow-md">
-              <div>
-                <h5 className="font-bold text-3xl">{totalTeachers}</h5>
-                <h1 className="font-light text-xl">Total Teachers</h1>
-              </div>
-              <div>
-                <FaChalkboardTeacher size={50} color="#9A96E7" className="bg-white rounded-full p-2" />
-              </div>
-            </div>
-          </div>
-            </div>
-            
-          
-          <div>
-          <AllStudentsPerformanceGraph classType="Hifz"/>
-        </div>
-        </div>
-        
-
-        <div id="right" className="flex-1 rounded-md p-4">
-          <div>
-          <div id="performance" className="w-full h-full bg-gray-100 rounded-2xl p-5 shadow-2xl">
-            <div id="performance-top" className="flex items-center justify-between mb-5">
-              <h1 className="text-black font-extrabold text-2xl">Top Students</h1>
-              <div className="flex gap-1.5 bg-white text-zinc-600 p-2 items-center justify-center rounded-3xl">
-                <h5>Class</h5>
-                <FaArrowDown size={15} />
-              </div>
-            </div>
-            <div id="performance-bottom" className="flex flex-col gap-3">
-              <div className="w-full h-auto bg-gray-200 flex items-center p-2 rounded-xl">
-                <img src="https://via.placeholder.com/40" alt="" className="w-10 h-10 rounded-full mr-7" />
-                <div>
-                  <h1 className="font-semibold text-xl opacity-80">Student Name</h1>
-                  <p className="text-[12px] font-bold">Performance 90%</p>
+            {/* Search Results */}
+            {searchResults.length > 0 && (
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <h2 className="text-xl font-semibold mb-4 text-gray-800">Search Results</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {searchResults.map((student) => (
+                    <div
+                      key={student._id}
+                      className="bg-gray-50 border border-gray-100 p-4 rounded-lg hover:shadow-md transition-shadow"
+                    >
+                      <h3 className="text-lg font-semibold text-gray-800">{student.fullName}</h3>
+                      <p className="text-gray-600">Class: {student.classType}</p>
+                      <p className="text-gray-600">Admission #: {student.admissionNumber}</p>
+                      <Link 
+                        to={`/student/${student._id}`} 
+                        className="text-blue-600 hover:text-blue-800 text-sm mt-2 inline-block"
+                      >
+                        View Details →
+                      </Link>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <div className="w-full h-auto bg-gray-200 flex items-center p-2 rounded-xl">
-                <img src="https://via.placeholder.com/40" alt="" className="w-10 h-10 rounded-full mr-7" />
+            )}
+
+            {/* Stat Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-gradient-to-r from-[#FB9858] to-[#FFC39E] rounded-xl text-white flex items-center justify-between p-6 shadow-md hover:shadow-lg transition-shadow">
                 <div>
-                  <h1 className="font-semibold text-xl opacity-80">Student Name</h1>
-                  <p className="text-[12px] font-bold">Performance 90%</p>
+                  <h5 className="font-bold text-3xl">{totalStudents}</h5>
+                  <h1 className="font-light text-xl">Total Students</h1>
+                </div>
+                <div className="bg-white rounded-full p-3 shadow-md">
+                  <PiStudentFill size={40} color="#FB9858" />
                 </div>
               </div>
-              <div className="w-full h-auto bg-gray-200 flex items-center p-2 rounded-xl">
-                <img src="https://via.placeholder.com/40" alt="" className="w-10 h-10 rounded-full mr-7" />
+              <div className="bg-gradient-to-r from-[#7C76DE] to-[#9A96E7] rounded-xl text-white flex items-center justify-between p-6 shadow-md hover:shadow-lg transition-shadow">
                 <div>
-                  <h1 className="font-semibold text-xl opacity-80">Student Name</h1>
-                  <p className="text-[12px] font-bold">Performance 90%</p>
+                  <h5 className="font-bold text-3xl">{totalTeachers}</h5>
+                  <h1 className="font-light text-xl">Total Teachers</h1>
+                </div>
+                <div className="bg-white rounded-full p-3 shadow-md">
+                  <FaChalkboardTeacher size={40} color="#7C76DE" />
                 </div>
               </div>
             </div>
+
+            {/* Performance Graph */}
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <h2 className="text-xl font-semibold mb-4 text-gray-800">Students Performance</h2>
+              <AllStudentsPerformanceGraph classType="Hifz" />
+            </div>
           </div>
 
-          {/* <div>
-            <PoorPerformersList />
-          </div> */}
-          
+          {/* Right Side - 1/3 width */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl shadow-md ">
+              <PoorPerformersList />
+            </div>
           </div>
         </div>
       </div>

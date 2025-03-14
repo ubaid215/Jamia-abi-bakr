@@ -41,13 +41,10 @@ const dailyReportRoutes = (io) => {
   );
 
   // Fetch students with poor performance
-  router.get(
-    "/poor-performers",
-    reportController.getPoorPerformers
-  );
+  router.get('/performance/poor-performers', reportController.getPoorPerformers);
 
-  // Fetch performance data for Hifz students
-  router.get(
+   // Fetch performance data for Hifz students
+   router.get(
     "/performance/hifz",
     reportController.hifzPerformance
   );
