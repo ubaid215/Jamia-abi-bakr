@@ -9,20 +9,22 @@ router.post("/register", upload.single("cv"), teacherController.registerTeacher)
 // Get all teachers
 router.get("/", teacherController.getAllTeachers);
 
+// Get a single teacher by ID
+router.get("/:id", teacherController.getTeacherById);
+
+// Get the total number of teachers
 router.get("/count", teacherController.getTotalTeachers);
 
-// teacherRoutes.js
+// Get all unique class types
 router.get("/class-types", teacherController.getClassTypes);
 
-// Get teachers by classType
-router.get("/filter", async (req, res) => {
-    try {
-      const { classType } = req.query;
-      const teachers = await Teacher.find({ classType });
-      res.status(200).json(teachers);
-    } catch (error) {
-      res.status(500).json({ message: "Server error", error: error.message });
-    }
-  });
+// Filter teachers by classType
+router.get("/filter", teacherController.getTeachersByClassType);
+
+// Update a teacher by ID
+router.put("/update/:id", teacherController.updateTeacher);
+
+// Delete a teacher by ID
+router.delete("/delete/:id", teacherController.deleteTeacher);
 
 module.exports = router;

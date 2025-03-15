@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Header from "../layout/Header";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import AllStudentsPerformanceGraph from "../AllStudentsPerformanceGraph";
+import HifzClassesPerformanceGraph from "../HifzClassesPerformanceGraph";
 import PoorPerformersList from "../Students/PoorPerformersList";
 
 
@@ -227,7 +227,7 @@ const Dashboard = () => {
             {/* Performance Graph */}
             <div className="bg-white rounded-xl shadow-md p-6">
               <h2 className="text-xl font-semibold mb-4 text-gray-800">Students Performance</h2>
-              <AllStudentsPerformanceGraph classType="Hifz" />
+              <HifzClassesPerformanceGraph classType="Hifz" />
             </div>
           </div>
 

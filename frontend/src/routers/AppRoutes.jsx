@@ -12,13 +12,15 @@ import DailyReport from "../components/DailyReport";
 import Analytics from "../components/Analytics";
 import TeacherRegistration from "../components/Teacher/TeacherRegistration";
 import AllTeachers from "../components/Teacher/AllTeachers";
+import TeacherDetail from "../components/Teacher/TeacherDetail";
 import StudentCard from "../components/Students/StudentCard";
 import PoorPerformersList from "../components/Students/PoorPerformersList";
-import AllStudentsPerformanceGraph from "../components/AllStudentsPerformanceGraph";
+import HifzClassesPerformanceGraph from "../components/HifzClassesPerformanceGraph";
 import CreateUser from "../components/Admin/CreateUser";
 import UserList from "../components/Admin/UserList";
 import ProtectedRoute from "../components/ProtectedRoute"; // Protection of routes
 import ForgotPassword from "../pages/ForgotPassword";
+import Settings from "../pages/Settings";
 
 const AppRoutes = () => {
   const location = useLocation(); // Track the current route location
@@ -129,6 +131,20 @@ const AppRoutes = () => {
             }
           />
           <Route
+            path="/teacher/:id"
+            element={
+              <motion.div
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageVariants}
+                transition={pageTransition}
+              >
+                <TeacherDetail />
+              </motion.div>
+            }
+          />
+          <Route
             path="/student/registration"
             element={
               <motion.div
@@ -222,7 +238,7 @@ const AppRoutes = () => {
                 variants={pageVariants}
                 transition={pageTransition}
               >
-                <AllStudentsPerformanceGraph />
+                <HifzClassesPerformanceGraph />
               </motion.div>
             }
           />
@@ -293,6 +309,20 @@ const AppRoutes = () => {
                 transition={pageTransition}
               >
                 <UserList />
+              </motion.div>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <motion.div
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageVariants}
+                transition={pageTransition}
+              >
+                <Settings />
               </motion.div>
             }
           />

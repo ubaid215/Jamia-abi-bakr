@@ -109,6 +109,7 @@ const TeacherRegistration = () => {
               <option value="">Select Class Type</option>
               <option value="Hifz-A">Hifz-A</option>
               <option value="Hifz-B">Hifz-B</option>
+              <option value="Hifz-C">Hifz-C</option>
               <option value="Nazra">Nazra</option>
               <option value="Dars-e-Nizami">Dars-e-Nizami</option>
               <option value="Academic">Academic</option>

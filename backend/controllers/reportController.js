@@ -262,8 +262,14 @@ const getParaCompletionData = async (req, res) => {
     // Calculate total lines completed
     let totalLinesCompleted = 0;
     reports.forEach((report) => {
-      if (report.sabaq && typeof report.sabaq === "string") {
-        totalLinesCompleted += report.sabaq.split(",").length;
+      if (report.sabaq) {
+        if (typeof report.sabaq === "string") {
+          // If sabaq is a comma-separated string
+          totalLinesCompleted += report.sabaq.split(",").length;
+        } else if (typeof report.sabaq === "number") {
+          // If sabaq is a number (e.g., lines completed)
+          totalLinesCompleted += report.sabaq;
+        }
       }
     });
 
@@ -279,7 +285,7 @@ const getParaCompletionData = async (req, res) => {
 const hifzPerformance = async (req, res) => {
   try {
     // Fetch students with classType = "Hifz"
-    const hifzStudents = await Student.find({ classType: "Hifz" });
+    const hifzStudents = await Student.find({ classType: { $in: ["Hifa-A", "Hifz-B"] } });
     if (hifzStudents.length === 0) {
       return res.status(404).json({ success: false, message: "No Hifz students found" });
     }
@@ -294,6 +300,89 @@ const hifzPerformance = async (req, res) => {
   }
 };
 
+// Fetch performance data for all Hifz classes
+const allHifzClassesPerformance = async (req, res) => {
+  try {
+    const { filter, startDate, endDate } = req.query;
+    
+    // Get all Hifz students
+    const hifzStudents = await Student.find({
+      classType: { $in: ["Hifz-A", "Hifz-B", "Hifz-C"] }
+    }, { 
+      _id: 1, 
+      fullName: 1, 
+      classType: 1 
+    });
+    
+    if (hifzStudents.length === 0) {
+      return res.status(404).json({ success: false, message: "No Hifz students found" });
+    }
+    
+    // Extract student IDs and create a map for class lookup
+    const studentIds = hifzStudents.map(student => student._id);
+    const studentClassMap = {};
+    
+    hifzStudents.forEach(student => {
+      studentClassMap[student._id.toString()] = {
+        classType: student.classType,
+        fullName: student.fullName
+      };
+    });
+    
+    // Build report query with date filters if needed
+    let reportQuery = { studentId: { $in: studentIds } };
+    
+    if (filter === "custom" && startDate && endDate) {
+      reportQuery.date = { 
+        $gte: new Date(startDate), 
+        $lte: new Date(endDate) 
+      };
+    } else if (filter === "weekly") {
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      reportQuery.date = { $gte: oneWeekAgo };
+    } else if (filter === "monthly") {
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+      reportQuery.date = { $gte: oneMonthAgo };
+    }
+    
+    // Fetch reports
+    const reports = await DailyReport.find(reportQuery).sort({ date: 1 });
+    
+    // Group reports by Hifz class type
+    const reportsByClass = {
+      "Hifz-A": [],
+      "Hifz-B": [],
+      "Hifz-C": []
+    };
+    
+    reports.forEach(report => {
+      const studentId = report.studentId.toString();
+      const studentInfo = studentClassMap[studentId];
+      
+      if (studentInfo) {
+        const classType = studentInfo.classType;
+        
+        // Add report with student name for reference
+        reportsByClass[classType].push({
+          ...report.toObject(),
+          studentName: studentInfo.fullName
+        });
+      }
+    });
+    
+    res.status(200).json({ 
+      success: true, 
+      reportsByClass 
+    });
+  } catch (error) {
+    console.error("Error fetching Hifz classes performance:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
 // Export all functions
 module.exports = {
   saveReport,
@@ -304,4 +393,5 @@ module.exports = {
   getParaCompletionData,
   getPoorPerformers,
   hifzPerformance,
+  allHifzClassesPerformance
 };

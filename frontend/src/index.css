@@ -12,14 +12,48 @@ input {
     @apply w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500;
 }
 
-.btn-primary {
-    @apply bg-blue-600 text-white py-2 px-6 rounded-md shadow-md hover:bg-blue-700 transition;
-}
-
-.btn-secondary {
-    @apply bg-gray-500 text-white py-2 px-6 rounded-md shadow-md hover:bg-gray-600 transition;
-}
-
-.btn-success {
-    @apply bg-green-600 text-white py-2 px-6 rounded-md shadow-md hover:bg-green-700 transition;
-}
+/* Switch Button Styles */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+  }
+  
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 34px;
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+  }
+  
+  input:checked + .slider {
+    background-color: #3b82f6; /* Blue color */
+  }
+  
+  input:checked + .slider:before {
+    transform: translateX(26px);
+  }

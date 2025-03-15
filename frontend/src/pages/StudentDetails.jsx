@@ -234,6 +234,7 @@ const StudentDetails = () => {
   useEffect(() => {
     fetchStudentDetails();
   }, [id]);
+  console.log("Student class type:", student?.classType);
 
   // Display loading or error messages
   if (loading) {
@@ -344,7 +345,7 @@ const StudentDetails = () => {
                 <FaInfoCircle /> Full Detail
               </button>
               {/* Conditionally render Daily Report tab for Hifz students */}
-              {student.classType === "Hifz" && (
+              {["Hifz-A", "Hifz-B"].includes(student?.classType) && (
                 <button
                   onClick={() => setActiveTab("dailyReport")}
                   className={`px-6 py-2 rounded-t-lg text-sm font-medium transition-colors flex items-center gap-2 ${

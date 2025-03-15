@@ -7,8 +7,7 @@ const connectDB = require("./config/db");
 const studentRoutes = require("./routes/studentRoutes");
 const dailyReportRoutes = require("./routes/dailyReportRoutes");
 const teacherRoutes = require("./routes/teacherRoutes");
-const adminRoutes = require("./routes/adminRoutes");
-const userRoutes = require("./routes/userRoutes");
+
 const path = require("path");
 
 // Load environment variables
@@ -47,8 +46,6 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/students", studentRoutes);
 app.use("/api/students", dailyReportRoutes(io)); // Pass `io` to dailyReportRoutes
 app.use("/api/teachers", teacherRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/users", userRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {

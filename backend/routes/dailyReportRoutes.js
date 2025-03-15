@@ -1,5 +1,6 @@
 const express = require("express");
 const reportController = require("../controllers/reportController");
+const { allHifzClassesPerformance } = require('../controllers/reportController');
 
 const dailyReportRoutes = (io) => {
   const router = express.Router();
@@ -48,6 +49,11 @@ const dailyReportRoutes = (io) => {
     "/performance/hifz",
     reportController.hifzPerformance
   );
+
+ // Add new endpoint for all Hifz classes performance
+router.get("/performance/hifz-classes", allHifzClassesPerformance);
+
+
 
   return router;
 };

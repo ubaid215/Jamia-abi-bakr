@@ -44,6 +44,22 @@ exports.getAllTeachers = async (req, res) => {
   }
 };
 
+// Get a single teacher by ID
+exports.getTeacherById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const teacher = await Teacher.findById(id);
+
+    if (!teacher) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    res.status(200).json(teacher);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 // Route to count total teachers
 exports.getTotalTeachers = async (req, res) => {
   try {
@@ -66,8 +82,7 @@ exports.getTeachersByClassType = async (req, res) => {
   }
 };
 
-// teacherController.js
-
+// Get all unique class types
 exports.getClassTypes = async (req, res) => {
   try {
     const classTypes = await Teacher.distinct("classType");
@@ -75,5 +90,45 @@ exports.getClassTypes = async (req, res) => {
   } catch (error) {
     console.error("Error fetching class types:", error);
     res.status(500).json({ success: false, message: "Failed to fetch class types" });
+  }
+};
+
+// Update teacher data
+exports.updateTeacher = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedData = req.body;
+
+    const updatedTeacher = await Teacher.findByIdAndUpdate(id, updatedData, { new: true });
+
+    if (!updatedTeacher) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    res.status(200).json({ message: "Teacher updated successfully", teacher: updatedTeacher });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Delete a teacher
+exports.deleteTeacher = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedTeacher = await Teacher.findByIdAndDelete(id);
+
+    if (!deletedTeacher) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    // Delete the associated CV file
+    if (deletedTeacher.cv) {
+      fs.unlinkSync(deletedTeacher.cv);
+    }
+
+    res.status(200).json({ message: "Teacher deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
