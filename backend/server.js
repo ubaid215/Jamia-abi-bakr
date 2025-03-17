@@ -7,6 +7,9 @@ const connectDB = require("./config/db");
 const studentRoutes = require("./routes/studentRoutes");
 const dailyReportRoutes = require("./routes/dailyReportRoutes");
 const teacherRoutes = require("./routes/teacherRoutes");
+const authRoute = require('./routes/authRoute'); 
+
+
 
 const path = require("path");
 
@@ -46,6 +49,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/students", studentRoutes);
 app.use("/api/students", dailyReportRoutes(io)); // Pass `io` to dailyReportRoutes
 app.use("/api/teachers", teacherRoutes);
+app.use('/api/auth', authRoute);
 
 // Health check route
 app.get('/health', (req, res) => {
