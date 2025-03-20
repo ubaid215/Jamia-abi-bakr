@@ -1,5 +1,4 @@
 /* eslint-disable no-unused-vars */
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
@@ -9,7 +8,7 @@ import {
   FaEdit,
   FaExchangeAlt,
   FaIdCard,
-} from "react-icons/fa"; // Added FaExchangeAlt for migrate icon
+} from "react-icons/fa";
 import {
   FaInfoCircle,
   FaCalendarDay,
@@ -24,24 +23,27 @@ import MigrationHistory from "../components/Students/MigrationHistory";
 
 const StudentDetails = () => {
   const { id } = useParams(); // Get student ID from the URL
-  // console.log("Student ID from URL:", id);
-  const [student, setStudent] = useState(null);
+  const [student, setStudent] = useState(null); // Initialize as null
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("fullDetail"); // State for active tab
-  const [isEditing, setIsEditing] = useState(false); // State for edit mode
-  const [editedStudent, setEditedStudent] = useState({}); // State for edited student data
-  const [isMigrateModalOpen, setIsMigrateModalOpen] = useState(false); // State for migrate modal
-  const [newClassType, setNewClassType] = useState(""); // State for new class type
-  const [availableClassTypes, setAvailableClassTypes] = useState([]); // State for available class types
+  const [activeTab, setActiveTab] = useState("fullDetail");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedStudent, setEditedStudent] = useState({});
+  const [isMigrateModalOpen, setIsMigrateModalOpen] = useState(false);
+  const [newClassType, setNewClassType] = useState("");
+  const [availableClassTypes, setAvailableClassTypes] = useState([]);
   const navigate = useNavigate();
 
   // Fetch student details from the backend
   const fetchStudentDetails = async () => {
     try {
+      console.log("Fetching student details...");
       const response = await axios.get(
         `http://localhost:5000/api/students/${id}`
       );
+
+      console.log("Student details response:", response.data);
+
       if (response.data && response.data.success) {
         setStudent(response.data.student); // Update state with fetched student
         setEditedStudent(response.data.student); // Initialize editedStudent with fetched data
@@ -49,9 +51,11 @@ const StudentDetails = () => {
         setError("Student not found");
       }
     } catch (error) {
+      console.error("Error fetching student details:", error);
       setError("Error fetching student details: " + error.message);
     } finally {
-      setLoading(false); // Stop loading
+      console.log("Setting loading to false");
+      setLoading(false); // Ensure loading is set to false
     }
   };
 
@@ -61,13 +65,34 @@ const StudentDetails = () => {
       const response = await axios.get(
         "http://localhost:5000/api/teachers/class-types"
       );
-      if (response.data && response.data.success) {
+      console.log("Fetched Class Types:", response.data);
+      
+      // Handle different response formats
+      if (response.data && response.data.success && Array.isArray(response.data.classTypes)) {
         setAvailableClassTypes(response.data.classTypes);
+      } else if (Array.isArray(response.data)) {
+        // If the response itself is an array
+        setAvailableClassTypes(response.data);
+      } else if (response.data && Array.isArray(response.data.usedClassTypes)) {
+        // Based on your terminal output, this might be the case
+        setAvailableClassTypes(response.data.usedClassTypes);
+      } else if (response.data && Array.isArray(response.data.schemaClassTypes)) {
+        // Or this might be the case
+        setAvailableClassTypes(response.data.schemaClassTypes);
+      } else {
+        console.error("Unexpected response format:", response.data);
+        setAvailableClassTypes([]);
       }
     } catch (error) {
       console.error("Error fetching class types:", error);
     }
   };
+
+  // Fetch student details and class types when the component mounts
+  useEffect(() => {
+    fetchStudentDetails(); // Fetch student details
+    fetchAvailableClassTypes(); // Fetch class types
+  }, [id]); // Re-run when `id` changes
 
   // Handle student migration
   const handleMigrateStudent = async () => {
@@ -94,6 +119,7 @@ const StudentDetails = () => {
   const openMigrateModal = () => {
     fetchAvailableClassTypes();
     setIsMigrateModalOpen(true);
+    console.log("Modal should be open now, isMigrateModalOpen:", true);
   };
 
   // Handle student image upload
@@ -230,12 +256,6 @@ const StudentDetails = () => {
     }
   };
 
-  // Fetch student details when the component mounts
-  useEffect(() => {
-    fetchStudentDetails();
-  }, [id]);
-  console.log("Student class type:", student?.classType);
-
   // Display loading or error messages
   if (loading) {
     return <p className="text-center mt-8">Loading student details...</p>;
@@ -243,6 +263,10 @@ const StudentDetails = () => {
 
   if (error) {
     return <p className="text-center mt-8 text-red-500">{error}</p>;
+  }
+
+  if (!student) {
+    return <p className="text-center mt-8">No student data found.</p>;
   }
 
   return (
@@ -358,14 +382,14 @@ const StudentDetails = () => {
                 </button>
               )}
               <button
-                onClick={() => setActiveTab("examsAndResult")}
+                onClick={() => setActiveTab("history")}
                 className={`px-6 py-2 rounded-t-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                  activeTab === "examsAndResult"
+                  activeTab === "history"
                     ? "bg-blue-500 text-white shadow-md hover:bg-blue-600"
                     : "bg-transparent text-gray-500 hover:bg-gray-100"
                 }`}
               >
-                <FaClipboardList /> Exams and Result
+                <FaClipboardList /> History
               </button>
               <button
                 onClick={() => setActiveTab("analytics")}
@@ -642,13 +666,10 @@ const StudentDetails = () => {
                       </div>
                     </div>
                   </div>
-                  <MigrationHistory studentId={id} />
                 </div>
               )}
               {activeTab === "dailyReport" && <DailyReport studentId={id} />}
-              {activeTab === "examsAndResult" && (
-                <div>Exams and Result Content</div>
-              )}
+              {activeTab === "history" && <MigrationHistory studentId={id} />}
               {activeTab === "analytics" && <Analytics studentId={id} />}
             </div>
           </div>
@@ -656,31 +677,53 @@ const StudentDetails = () => {
 
         {/* Migrate Modal */}
         {isMigrateModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <div className="bg-white p-6 rounded-lg w-96">
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+            onClick={() => setIsMigrateModalOpen(false)}
+          >
+            <div
+              className="bg-white p-6 rounded-lg w-96"
+              onClick={(e) => e.stopPropagation()}
+            >
               <h3 className="text-xl font-semibold mb-4">Migrate Student</h3>
-              <select
-                value={newClassType}
-                onChange={(e) => setNewClassType(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-lg mb-4"
-              >
-                <option value="">Select New Class Type</option>
-                {availableClassTypes.map((classType) => (
-                  <option key={classType} value={classType}>
-                    {classType}
-                  </option>
-                ))}
-              </select>
+
+              {availableClassTypes.length > 0 ? (
+                <select
+                  value={newClassType}
+                  onChange={(e) => setNewClassType(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-lg mb-4"
+                >
+                  <option value="">Select New Class Type</option>
+                  {availableClassTypes.map((classType) => (
+                    <option key={classType} value={classType}>
+                      {classType}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <p className="text-red-500 mb-4">
+                  No class types available. Please check your connection to the
+                  server.
+                </p>
+              )}
+
               <div className="flex justify-end gap-2">
                 <button
+                  type="button"
                   onClick={() => setIsMigrateModalOpen(false)}
                   className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
                 >
                   Cancel
                 </button>
                 <button
+                  type="button"
                   onClick={handleMigrateStudent}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                  disabled={!newClassType || availableClassTypes.length === 0}
+                  className={`px-4 py-2 ${
+                    !newClassType || availableClassTypes.length === 0
+                      ? "bg-blue-300"
+                      : "bg-blue-500 hover:bg-blue-600"
+                  } text-white rounded-lg`}
                 >
                   Migrate
                 </button>

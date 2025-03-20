@@ -27,7 +27,7 @@ const sendWelcomeEmail = async (email, name) => {
         const response = await mailtrapclient.send({
             from: sender,
             to: recipients,
-            template_uuid: "89893163-6d92-49c1-b63b-4404044c8011", // Template UUID from Mailtrap
+            template_uuid: "485d7d90-442b-44ca-816b-083327263cbc", // Template UUID from Mailtrap
             template_variables: {
                 "company_info_name": "Auth Company",
                 name: name,
@@ -46,12 +46,16 @@ const sendForgetEmail = async (email, resetUrl) => {
     const recipients = [{ email }];
 
     try {
+        // Replace the placeholder in the template with the actual reset URL
+        const emailContent = PASSWORD_RESET_REQUEST_TEMPLATE.replace(/{resetURL}/g, resetUrl);
+
+        // Send the email
         const response = await mailtrapclient.send({
             from: sender,
             to: recipients,
             subject: "Reset Your Password",
-            html: PASSWORD_RESET_REQUEST_TEMPLATE.replace("{resetUrl}", resetUrl),
-            
+            html: emailContent,
+            text: `Hello,\n\nWe received a request to reset your password. If you didn't make this request, please ignore this email.\n\nTo reset your password, click the link below:\n${resetUrl}\n\nIf you cannot click the link, copy and paste it into your browser.\n\nThis link will expire in 1 hour for security reasons.\n\nBest regards,\nYour App Team`
         });
 
         console.log("Forget password email sent successfully", response);

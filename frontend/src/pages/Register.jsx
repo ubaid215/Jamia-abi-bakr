@@ -10,7 +10,7 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'admin', // Default role is 'admin'
+    role: 'user', // Default role is 'user'
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -18,9 +18,10 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false); // State to toggle confirm password visibility
 
   const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: type === 'checkbox' ? (checked ? 'admin' : 'user') : value,
     });
   };
 
@@ -54,18 +55,24 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-  
+
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:5000/api/admin/register', {
+      const response = await axios.post('http://localhost:5000/api/auth/signup', {
         name: formData.name,
         email: formData.email,
         password: formData.password,
+        role: formData.role, // Include the role in the request
       });
       console.log('Registration Response:', response.data); // Debugging
-      navigate('/login', { state: { message: 'Registration successful. Please login.' } });
+
+      // Redirect to verify-email page with a success message
+      navigate('/verify-email', { state: { email: formData.email } });
     } catch (error) {
-      setErrors({ submit: error.response?.data?.error || 'Registration failed' });
+      console.error('Registration Error:', error.response?.data); // Debugging
+      setErrors({
+        submit: error.response?.data?.message || 'Registration failed. Please try again.',
+      });
     } finally {
       setLoading(false);
     }
@@ -75,8 +82,8 @@ const Register = () => {
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
         <div className="text-center">
-          <h1 className="text-2xl font-bold">Admin Registration</h1>
-          <p className="text-gray-600">Create your admin account</p>
+          <h1 className="text-2xl font-bold">Registration</h1>
+          <p className="text-gray-600">Create your account</p>
         </div>
 
         {errors.submit && (
@@ -168,6 +175,20 @@ const Register = () => {
             {errors.confirmPassword && (
               <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>
             )}
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="role"
+              name="role"
+              checked={formData.role === 'admin'}
+              onChange={handleChange}
+              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+            />
+            <label htmlFor="role" className="ml-2 block text-sm text-gray-900">
+              Register as Admin
+            </label>
           </div>
 
           <button

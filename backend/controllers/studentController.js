@@ -1,10 +1,16 @@
 const Student = require("../models/Student");
-const fs = require("fs"); 
-const path = require("path"); 
+const fs = require("fs");
+const path = require("path");
 const Teacher = require('../models/Teacher');
 
+// Helper function for checking weekly performance
+async function checkWeeklyPerformance(studentId) {
+  // Implement your performance check logic here
+  return false; // Placeholder return
+}
+
 // Upload student's profile image
-exports.uploadStudentImage = async (req, res) => {
+const uploadStudentImage = async (req, res) => {
   try {
     const studentId = req.params.id;
     const imageFile = req.file; // Uploaded file details
@@ -39,7 +45,7 @@ exports.uploadStudentImage = async (req, res) => {
 };
 
 // Upload father's image
-exports.uploadFatherImage = async (req, res) => {
+const uploadFatherImage = async (req, res) => {
   try {
     const studentId = req.params.id;
     const imageFile = req.file; // Uploaded file details
@@ -74,7 +80,7 @@ exports.uploadFatherImage = async (req, res) => {
 };
 
 // Upload documents (e.g., B-Form, CNIC, etc.)
-exports.uploadDocuments = async (req, res) => {
+const uploadDocuments = async (req, res) => {
   try {
     const studentId = req.params.id;
     const files = req.files; // Array of uploaded files
@@ -110,7 +116,7 @@ exports.uploadDocuments = async (req, res) => {
 };
 
 // Create a new student
-exports.createStudent = async (req, res) => {
+const createStudent = async (req, res) => {
   try {
     // Get the total number of students to generate roll and admission numbers
     const totalStudents = await Student.countDocuments();
@@ -141,7 +147,7 @@ exports.createStudent = async (req, res) => {
 };
 
 // Get all students with filters and sorting
-exports.getAllStudents = async (req, res) => {
+const getAllStudents = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1; // Default to page 1
     const limit = parseInt(req.query.limit) || 20; // Default to 20 students per page
@@ -236,17 +242,59 @@ exports.getAllStudents = async (req, res) => {
 };
 
 // Count total students
-exports.getTotalStudents = async (req, res) => {
+const getTotalStudents = async (req, res) => {
   try {
     const totalStudents = await Student.countDocuments();
-    res.status(200).json({ success: true, totalStudents });
+    
+    // Get counts by class type
+    const classCounts = await Student.aggregate([
+      { $group: { _id: "$classType", count: { $sum: 1 } } }
+    ]);
+    
+    // Convert to a more usable format
+    const countsByClass = {};
+    classCounts.forEach(item => {
+      countsByClass[item._id] = item.count;
+    });
+    
+    res.status(200).json({ 
+      success: true, 
+      totalStudents,
+      classCounts: countsByClass 
+    });
   } catch (error) {
+    console.error("Error counting students:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
+// Get all unique class types
+const getClassTypes = async (req, res) => {
+  try {
+    console.log("Fetching student class types..."); // Debugging
+    
+    // Use the enum values from the schema instead of distinct query
+    const classTypes = Student.schema.path('classType').enumValues;
+    
+    // If you want actual used values, use this approach
+    const usedClassTypes = await Student.distinct("classType");
+    
+    console.log("Schema Class Types:", classTypes);
+    console.log("Used Class Types:", usedClassTypes);
+    
+    res.status(200).json({ 
+      success: true, 
+      allClassTypes: classTypes, 
+      usedClassTypes: usedClassTypes 
+    });
+  } catch (error) {
+    console.error("Error fetching student class types:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch class types", error: error.message });
+  }
+};
+
 // Get a single student by ID
-exports.getStudentById = async (req, res) => {
+const getStudentById = async (req, res) => {
   try {
     const student = await Student.findById(req.params.id);
     if (!student) {
@@ -261,7 +309,7 @@ exports.getStudentById = async (req, res) => {
 };
 
 // Update a student
-exports.updateStudent = async (req, res) => {
+const updateStudent = async (req, res) => {
   try {
     const student = await Student.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
@@ -283,7 +331,7 @@ exports.updateStudent = async (req, res) => {
 };
 
 // Delete a student
-exports.deleteStudent = async (req, res) => {
+const deleteStudent = async (req, res) => {
   try {
     const student = await Student.findByIdAndDelete(req.params.id);
     if (!student) {
@@ -298,54 +346,50 @@ exports.deleteStudent = async (req, res) => {
 };
 
 // Student Migration Function
-exports.migrateStudent = async (req, res) => {
+const migrateStudent = async (req, res) => {
   try {
-    const { studentId, newClassType, migratedBy } = req.body;
+    const { studentId, newClassType, fromClassType } = req.body;
+    console.log("Migrating student:", studentId, fromClassType, "->", newClassType); // Debugging
 
-    // Validate input
+    // Validate input data
     if (!studentId || !newClassType) {
-      return res.status(400).json({ success: false, message: "studentId and newClassType are required" });
+      return res.status(400).json({ success: false, message: "Missing studentId or newClassType" });
     }
 
-    // Step 1: Find the student
+    // Perform migration logic
     const student = await Student.findById(studentId);
     if (!student) {
       return res.status(404).json({ success: false, message: "Student not found" });
     }
 
-    // Step 2: Find a teacher for the new class type
-    const teacher = await Teacher.findOne({ classType: newClassType });
-    if (!teacher) {
-      return res.status(404).json({ success: false, message: "No teacher found for the new class type" });
-    }
-
-    // Step 3: Add migration history
+    // Store the current class type before updating
+    const oldClassType = student.classType;
+    
+    // Add migration record to history
     student.migrationHistory.push({
-      fromClass: student.classType, // Previous class type
-      toClass: newClassType, // New class type
-      migratedBy: migratedBy || "Admin", // Who performed the migration
+      date: new Date(),
+      fromClass: oldClassType,
+      toClass: newClassType,
+      migratedBy: req.body.migratedBy || "Admin"
     });
-
-    // Step 4: Update the student's classType and teacherName
+    
+    // Update the class type
     student.classType = newClassType;
-    student.teacherName = teacher.fullName;
-
-    // Save the updated student
     await student.save();
 
-    res.status(200).json({
-      success: true,
+    res.status(200).json({ 
+      success: true, 
       message: "Student migrated successfully",
-      student,
+      student
     });
   } catch (error) {
-    console.error("Error in migrateStudent:", error);
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Error migrating student:", error); // Debugging
+    res.status(500).json({ success: false, message: "Failed to migrate student", error: error.message });
   }
 };
 
 // Mirgrated Student History
-exports.getMigrationHistory = async (req, res) => {
+const getMigrationHistory = async (req, res) => {
   try {
     const studentId = req.params.id;
     const student = await Student.findById(studentId);
@@ -362,8 +406,8 @@ exports.getMigrationHistory = async (req, res) => {
   }
 };
 
-// In studentController.js
-exports.getPoorPerformers = async (req, res) => {
+// Get poor performers
+const getPoorPerformers = async (req, res) => {
   try {
     const allStudents = await Student.find(); // Fetch all students
     const poorPerformers = [];
@@ -381,7 +425,8 @@ exports.getPoorPerformers = async (req, res) => {
   }
 };
 
-exports.deleteDocument = async (req, res) => {
+// Delete a document
+const deleteDocument = async (req, res) => {
   try {
     const { documentPath } = req.body;
     const studentId = req.params.id;
@@ -407,4 +452,33 @@ exports.deleteDocument = async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
+};
+
+// Get students by class type
+const getStudentsByClassType = async (req, res) => {
+  try {
+    const { classType } = req.query;
+    const students = await Student.find({ classType });
+    res.status(200).json({ success: true, students });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
+module.exports = {
+  uploadStudentImage,
+  uploadFatherImage,
+  uploadDocuments,
+  createStudent,
+  getAllStudents,
+  getTotalStudents,
+  getClassTypes,
+  getStudentById,
+  updateStudent,
+  deleteStudent,
+  migrateStudent,
+  getMigrationHistory,
+  getPoorPerformers,
+  deleteDocument,
+  getStudentsByClassType
 };

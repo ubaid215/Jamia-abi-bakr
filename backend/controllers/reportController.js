@@ -263,17 +263,31 @@ const getParaCompletionData = async (req, res) => {
     let totalLinesCompleted = 0;
     reports.forEach((report) => {
       if (report.sabaq) {
-        if (typeof report.sabaq === "string") {
-          // If sabaq is a comma-separated string
-          totalLinesCompleted += report.sabaq.split(",").length;
-        } else if (typeof report.sabaq === "number") {
-          // If sabaq is a number (e.g., lines completed)
-          totalLinesCompleted += report.sabaq;
+        // Convert sabaq to a number if it's a string
+        const sabaqLines = Number(report.sabaq);
+        if (!isNaN(sabaqLines)) {
+          totalLinesCompleted += sabaqLines;
         }
       }
     });
 
-    res.status(200).json({ success: true, totalLinesCompleted });
+    // Calculate average lines per day
+    const totalDays = reports.length;
+    const averageLinesPerDay = totalDays > 0 ? totalLinesCompleted / totalDays : 0;
+
+    // Estimate days to complete the Quran (assuming 604 pages and 15 lines per page)
+    const totalLinesInQuran = 604 * 15; // Adjust this based on your Quran's line count
+    const estimatedDaysToCompleteQuran =
+      averageLinesPerDay > 0
+        ? Math.ceil((totalLinesInQuran - totalLinesCompleted) / averageLinesPerDay)
+        : "N/A";
+
+    res.status(200).json({
+      success: true,
+      totalLinesCompleted,
+      averageLinesPerDay,
+      estimatedDaysToCompleteQuran,
+    });
   } catch (error) {
     console.error("Error fetching para completion data:", error);
     res.status(500).json({ success: false, message: error.message });
@@ -382,6 +396,60 @@ const allHifzClassesPerformance = async (req, res) => {
   }
 };
 
+const updateReport = async (req, res) => {
+  try {
+    const { studentId, reportId } = req.params;
+    const updateData = req.body;
+
+    // Validate student ID and report ID
+    if (
+      !mongoose.Types.ObjectId.isValid(studentId) ||
+      !mongoose.Types.ObjectId.isValid(reportId)
+    ) {
+      return res.status(400).json({ success: false, message: "Invalid ID" });
+    }
+
+    // Calculate condition based on mistakes (only for "Present" attendance)
+    let condition = "Good";
+    if (updateData.attendance === "Present") {
+      if (
+        updateData.sabaqMistakes > 2 ||
+        updateData.sabqiMistakes > 2 ||
+        updateData.manzilMistakes > 3
+      ) {
+        condition = "Below Average";
+      } else if (
+        updateData.sabaqMistakes > 0 ||
+        updateData.sabqiMistakes > 1 ||
+        updateData.manzilMistakes > 1
+      ) {
+        condition = "Medium";
+      }
+    } else {
+      condition = "N/A"; // No condition for "Absent" or "Leave"
+    }
+
+    // Add the calculated condition to the updateData
+    updateData.condition = condition;
+
+    // Find and update the report
+    const updatedReport = await DailyReport.findOneAndUpdate(
+      { _id: reportId, studentId },
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedReport) {
+      return res.status(404).json({ success: false, message: "Report not found" });
+    }
+
+    res.status(200).json({ success: true, report: updatedReport });
+  } catch (error) {
+    console.error("Error updating report:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 
 // Export all functions
 module.exports = {
@@ -393,5 +461,6 @@ module.exports = {
   getParaCompletionData,
   getPoorPerformers,
   hifzPerformance,
-  allHifzClassesPerformance
+  allHifzClassesPerformance,
+  updateReport
 };

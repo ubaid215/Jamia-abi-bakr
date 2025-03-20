@@ -1,7 +1,7 @@
 const User = require('../models/user');
 const crypto = require('crypto');
 const { generateTokenAndSetCookie } = require('../utils/generateTokenAndSetCookie');
-const { sendVerificationEmail, sendWelcomeEmail, sendForgetEmail } = require('../mailtrap/emails');
+const { sendVerificationEmail, sendWelcomeEmail, sendForgetEmail, sendResetPasswordEmail } = require('../mailtrap/emails');
 const bcrypt = require('bcryptjs');
 
 // Generate a 6-digit numeric verification token
@@ -199,15 +199,16 @@ const forgotPassword = async (req, res) => {
         // Generate reset token
         const resetToken = crypto.randomBytes(20).toString('hex');
 
-        // Hash the token and set it in the user document
-        user.resetPasswordToken = crypto
-            .createHash('sha256')
-            .update(resetToken)
-            .digest('hex');
+        // Hash the token and store it
+        const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
 
-        // Set token expiration (10 minutes from now)
+        user.resetPasswordToken = hashedToken;
         user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
         await user.save({ validateBeforeSave: false });
+
+        // Log token details for debugging
+        console.log("Reset Token (plain):", resetToken);
+        console.log("Hashed Token (stored in DB):", hashedToken);
 
         // Create reset URL
         const resetUrl = `${req.protocol}://${req.get('host')}/api/auth/reset-password/${resetToken}`;
@@ -239,6 +240,8 @@ const resetPassword = async (req, res) => {
         const { token } = req.params;
         const { password } = req.body;
 
+        console.log("Token received in request params:", token);
+
         // Check if password is provided
         if (!password) {
             return res.status(400).json({
@@ -247,17 +250,18 @@ const resetPassword = async (req, res) => {
             });
         }
 
+        // Hash the received token
+        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+        console.log("Received Token (hashed):", hashedToken);
+
         // Find the user with the matching reset token
         const user = await User.findOne({
-            resetPasswordToken: crypto
-                .createHash('sha256')
-                .update(token)
-                .digest('hex'),
-            resetPasswordExpire: { $gt: Date.now() } // Check if the token is not expired
+            resetPasswordToken: hashedToken,
+            resetPasswordExpire: { $gt: Date.now() }
         });
 
-        // If no user is found or the token is expired
         if (!user) {
+            console.log("Token mismatch or expired");
             return res.status(400).json({
                 success: false,
                 message: 'Invalid or expired token'
@@ -294,11 +298,39 @@ const resetPassword = async (req, res) => {
     }
 };
 
+const checkAuth = async (req, res) => {
+    try {
+        // Get the user details from the request object
+        const user = req.user;
+
+        // Send the user details in the response
+        res.status(200).json({
+            success: true,
+            message: 'User is authenticated',
+            user: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                isVerified: user.isVerified
+            }
+        });
+    } catch (error) {
+        console.error('Error in checkAuth:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+};
+
+
 module.exports = {
     signup,
     verifyEmail,
     logout,
     login,
     forgotPassword,
-    resetPassword
+    resetPassword, 
+    checkAuth
 };

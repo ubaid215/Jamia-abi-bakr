@@ -21,6 +21,7 @@ import UserList from "../components/Admin/UserList";
 import ProtectedRoute from "../components/ProtectedRoute"; // Protection of routes
 import ForgotPassword from "../pages/ForgotPassword";
 import Settings from "../pages/Settings";
+import VerifyEmail from "../pages/VerifyEmail";
 
 const AppRoutes = () => {
   const location = useLocation(); // Track the current route location
@@ -82,6 +83,20 @@ const AppRoutes = () => {
               transition={pageTransition}
             >
               <ForgotPassword />
+            </motion.div>
+          }
+        />
+         <Route
+          path="/verify-email"
+          element={
+            <motion.div
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={pageVariants}
+              transition={pageTransition}
+            >
+              <VerifyEmail />
             </motion.div>
           }
         />

@@ -121,10 +121,9 @@ const DailyReport = () => {
       const endpoint = editReportId
         ? `http://localhost:5000/api/students/${id}/reports/${editReportId}`
         : `http://localhost:5000/api/students/${id}/reports`;
-
+  
       const method = editReportId ? "put" : "post";
-
-      // If attendance is "Absent" or "Leave," clear other fields
+  
       const reportData = {
         ...formData,
         date: formData.date || new Date().toISOString().split("T")[0], // Use current date if no date is provided
@@ -135,9 +134,9 @@ const DailyReport = () => {
         manzil: formData.attendance === "Present" ? formData.manzil : "",
         manzilMistakes: formData.attendance === "Present" ? formData.manzilMistakes : 0,
       };
-
+  
       const response = await axios[method](endpoint, reportData);
-
+  
       if (response.data.success) {
         fetchReportsByMonth(); // Refresh the reports
         setFormData({

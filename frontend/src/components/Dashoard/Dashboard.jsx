@@ -52,28 +52,46 @@ const Dashboard = () => {
   }, []);
 
   // Fetch total number of students and teachers
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [studentsResponse, teachersResponse] = await Promise.all([
-          axios.get("http://localhost:5000/api/students/count"),
-          axios.get("http://localhost:5000/api/teachers/count")
-        ]);
-        
-        if (studentsResponse.data && studentsResponse.data.success) {
-          setTotalStudents(studentsResponse.data.totalStudents);
-        }
-        
-        if (teachersResponse.data && teachersResponse.data.success) {
-          setTotalTeachers(teachersResponse.data.totalTeachers);
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
+ // In your useEffect that fetches data:
+ useEffect(() => {
+  const fetchData = async () => {
+    try {
+      console.log("Attempting to fetch student and teacher counts...");
+      
+      const [studentsResponse, teachersResponse] = await Promise.all([
+        axios.get("http://localhost:5000/api/students/count"),
+        axios.get("http://localhost:5000/api/teachers/count")
+      ]);
+      
+      console.log("Student response:", studentsResponse.data);
+      console.log("Teacher response:", teachersResponse.data);
+      
+      if (studentsResponse.data && studentsResponse.data.success) {
+        setTotalStudents(studentsResponse.data.totalStudents);
+        console.log("Updated total students to:", studentsResponse.data.totalStudents);
+      } else {
+        console.error("Invalid student response format:", studentsResponse.data);
       }
-    };
+      
+      if (teachersResponse.data && teachersResponse.data.success) {
+        setTotalTeachers(teachersResponse.data.totalTeachers);
+        console.log("Updated total teachers to:", teachersResponse.data.totalTeachers);
+      } else {
+        console.error("Invalid teacher response format:", teachersResponse.data);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error.message);
+      if (error.response) {
+        console.error("Error response data:", error.response.data);
+        console.error("Error response status:", error.response.status);
+      } else if (error.request) {
+        console.error("No response received:", error.request);
+      }
+    }
+  };
 
-    fetchData();
-  }, []);
+  fetchData();
+}, []);
 
   // Handle search with debounce
   useEffect(() => {

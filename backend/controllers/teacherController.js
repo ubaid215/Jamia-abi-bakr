@@ -3,9 +3,9 @@ const fs = require("fs");
 const path = require("path");
 
 // Register a new teacher
-exports.registerTeacher = async (req, res) => {
+const registerTeacher = async (req, res) => {
   try {
-    const { fullName, fatherName, cnic, phoneNumber, address, classType } = req.body; // Add classType
+    const { fullName, fatherName, cnic, phoneNumber, address, classType } = req.body;
     const cvPath = req.file.path;
 
     // Check if teacher already exists
@@ -23,7 +23,7 @@ exports.registerTeacher = async (req, res) => {
       cnic,
       phoneNumber,
       address,
-      classType, // Add classType
+      classType,
       cv: cvPath,
     });
 
@@ -35,7 +35,7 @@ exports.registerTeacher = async (req, res) => {
 };
 
 // Get all teachers
-exports.getAllTeachers = async (req, res) => {
+const getAllTeachers = async (req, res) => {
   try {
     const teachers = await Teacher.find();
     res.status(200).json(teachers);
@@ -45,7 +45,7 @@ exports.getAllTeachers = async (req, res) => {
 };
 
 // Get a single teacher by ID
-exports.getTeacherById = async (req, res) => {
+const getTeacherById = async (req, res) => {
   try {
     const { id } = req.params;
     const teacher = await Teacher.findById(id);
@@ -60,41 +60,68 @@ exports.getTeacherById = async (req, res) => {
   }
 };
 
-// Route to count total teachers
-exports.getTotalTeachers = async (req, res) => {
+// Count total teachers
+const getTotalTeachers = async (req, res) => {
   try {
-    const totalTeachers = await Teacher.countDocuments(); // Count all documents in the Teacher collection
-    res.status(200).json({ success: true, totalTeachers });
+    const totalTeachers = await Teacher.countDocuments();
+    // Return consistent format with classType information
+    const classCounts = await Teacher.aggregate([
+      { $group: { _id: "$classType", count: { $sum: 1 } } }
+    ]);
+    
+    // Convert to a more usable format
+    const countsByClass = {};
+    classCounts.forEach(item => {
+      countsByClass[item._id] = item.count;
+    });
+    
+    res.status(200).json({ 
+      success: true, 
+      totalTeachers,
+      classCounts: countsByClass 
+    });
   } catch (error) {
     console.error("Error counting teachers:", error);
     res.status(500).json({ success: false, message: "Failed to count teachers" });
   }
 };
 
-// Route to filter teachers by classType
-exports.getTeachersByClassType = async (req, res) => {
+// Filter teachers by classType
+const getTeachersByClassType = async (req, res) => {
   try {
     const { classType } = req.query;
     const teachers = await Teacher.find({ classType });
-    res.status(200).json(teachers);
+    res.status(200).json({ success: true, teachers });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 
 // Get all unique class types
-exports.getClassTypes = async (req, res) => {
+const getClassTypes = async (req, res) => {
   try {
-    const classTypes = await Teacher.distinct("classType");
-    res.status(200).json({ success: true, classTypes });
+    // Use the enum values from the schema instead of distinct query
+    const classTypes = Teacher.schema.path('classType').enumValues;
+    
+    // If you want actual used values, use this approach
+    const usedClassTypes = await Teacher.distinct("classType");
+    
+    console.log("Schema Class Types:", classTypes);
+    console.log("Used Class Types:", usedClassTypes);
+    
+    res.status(200).json({ 
+      success: true, 
+      allClassTypes: classTypes, 
+      usedClassTypes: usedClassTypes 
+    });
   } catch (error) {
     console.error("Error fetching class types:", error);
-    res.status(500).json({ success: false, message: "Failed to fetch class types" });
+    res.status(500).json({ success: false, message: "Failed to fetch class types", error: error.message });
   }
 };
 
 // Update teacher data
-exports.updateTeacher = async (req, res) => {
+const updateTeacher = async (req, res) => {
   try {
     const { id } = req.params;
     const updatedData = req.body;
@@ -112,7 +139,7 @@ exports.updateTeacher = async (req, res) => {
 };
 
 // Delete a teacher
-exports.deleteTeacher = async (req, res) => {
+const deleteTeacher = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -131,4 +158,16 @@ exports.deleteTeacher = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
+};
+
+// Export all functions
+module.exports = {
+  registerTeacher,
+  getAllTeachers,
+  getTeacherById,
+  getTotalTeachers,
+  getTeachersByClassType,
+  getClassTypes,
+  updateTeacher,
+  deleteTeacher,
 };

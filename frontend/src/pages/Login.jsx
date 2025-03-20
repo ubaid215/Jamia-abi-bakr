@@ -26,23 +26,24 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.email || !formData.password) {
-      setError("Email and password are required");
+      setError('Email and password are required');
       return;
     }
-  
+
     setLoading(true);
     try {
-      const response = await axios.post("http://localhost:5000/api/admin/login", {
+      const response = await axios.post('http://localhost:5000/api/auth/login', {
         email: formData.email,
         password: formData.password,
       });
-      console.log("Login Response:", response.data); // Debugging
-      const { token, admin } = response.data;
-      authLogin(token, admin); // Save token and admin data
-      navigate("/"); // Redirect to dashboard
+      console.log('Login Response:', response.data); // Debugging
+
+      const { token, user } = response.data;
+      authLogin(token, user); // Save token and user data
+      navigate('/'); // Redirect to dashboard
     } catch (error) {
-      console.error("Login Error:", error.response?.data); // Debugging
-      setError(error.response?.data?.message || "Login failed");
+      console.error('Login Error:', error.response?.data); // Debugging
+      setError(error.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -115,7 +116,7 @@ const Login = () => {
 
             <div className="text-sm">
               <Link
-                to="/reset-password"
+                to="/forgot-password"
                 className="font-medium text-indigo-600 hover:text-indigo-500"
               >
                 Forgot password?

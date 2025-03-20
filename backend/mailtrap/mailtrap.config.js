@@ -5,7 +5,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 // Define environment variables
-const TOKEN = "771779de60e82d30985e331481016241"; // Hardcoded for now
+const TOKEN = "feb3c85fe526adbd99c37085746bfc5e"; // Hardcoded for now
 const ENDPOINT = process.env.MAILTRAP_ENDPOINT;
 
 // Create Mailtrap client

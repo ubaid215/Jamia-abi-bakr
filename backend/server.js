@@ -2,15 +2,13 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const http = require("http");
+const cookieParser = require("cookie-parser");
 const { Server } = require("socket.io");
 const connectDB = require("./config/db");
 const studentRoutes = require("./routes/studentRoutes");
 const dailyReportRoutes = require("./routes/dailyReportRoutes");
 const teacherRoutes = require("./routes/teacherRoutes");
 const authRoute = require('./routes/authRoute'); 
-
-
-
 const path = require("path");
 
 // Load environment variables
@@ -44,6 +42,7 @@ app.use(
 
 // Serve static files from the 'uploads' folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(cookieParser());
 
 // Routes
 app.use("/api/students", studentRoutes);

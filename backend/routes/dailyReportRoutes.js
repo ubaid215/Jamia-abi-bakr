@@ -53,6 +53,9 @@ const dailyReportRoutes = (io) => {
  // Add new endpoint for all Hifz classes performance
 router.get("/performance/hifz-classes", allHifzClassesPerformance);
 
+// Update report 
+router.put("/:studentId/reports/:reportId", reportController.updateReport);
+
 
 
   return router;
